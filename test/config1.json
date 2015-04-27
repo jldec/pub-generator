@@ -1,0 +1,5 @@
+{
+  "test":     "test-config1",
+  "sources":  "./pub-src",
+  "edit":     true
+}

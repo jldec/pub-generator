@@ -1,0 +1,34 @@
+{
+  "name": "pub-generator",
+  "version": "0.5.0",
+  "description": "markdown/handlebars site generator - runs in node or browser",
+  "main": "generator.js",
+  "dependencies": {
+    "asyncbuilder": "*",
+    "pub-util": "*",
+    "pub-resolve-opts": "*",
+    "pub-src-http": "*",
+    "debug": "*",
+    "marked": "*",
+    "marked-forms": "*",
+    "marked-images": "*",
+    "handlebars": "*"
+  },
+  "devDependencies": {
+    "pub-src-fs": "*",
+    "pub-theme-gfm": "*",
+    "deep-diff":  "*",
+    "rmdir": "*",
+    "mocha": "*",
+    "should": "*"
+  },
+  "scripts": {
+    "test": "mocha --ui qunit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jldec/pub-generator.git"
+  },
+  "author": "jurgen leschner",
+  "license": "MIT"
+}
