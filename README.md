@@ -39,7 +39,7 @@ app.get(function(req, res, next) {
 
 
 ### browser usage
-`pub-server` can deliver the generator to clients in browserified form at `/pub/_generator.js`. 
+`pub-server` can deliver the generator to clients in browserified form at `/pub/_generator.js`.
 Here is a slightly simplified version of this (jQuery) script. Options and plugins are retrieved separately for caching reasons.
 
 ```js

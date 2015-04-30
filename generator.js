@@ -1,6 +1,6 @@
 /**
  * pub-generator.js
- * 
+ *
  * - compiles markdown source, handlebars templates, etc
  * - renders finished pages
  * - handles updates from editor
@@ -59,7 +59,8 @@ function Generator(opts) {
 
     // other modules
     Fragment:          require('./fragment'),
-    handlebars:        require('handlebars').create() // handlebars instance
+    handlebars:        require('handlebars').create(), // handlebars instance
+    util:              u                               // lighten browserified plugins
 
   } );
 
@@ -139,6 +140,7 @@ function Generator(opts) {
     generator.aliase$         =  indexPages('alias');
     generator.redirect$       =  indexPages('redirect');
     generator.templatePages$  =  u.groupBy(generator.pages, 'template');
+    generator.sourcePage$     =  u.groupBy(generator.pages, function(page) { return page._file.source.name; });
     generator.emit('pages-ready');
   }
 
@@ -146,13 +148,10 @@ function Generator(opts) {
   function indexPages(header) {
     var map = {};
     u.each(generator.pages, function(page) {
-      var vals = page[header];
-      if (!vals) return;
-      if (!u.isArray(vals)) { vals = [ vals ]; }
-      u.each(vals, function(val) {
+      u.each(u.getaVals(page, header), function(val) {
         map[val] = page;
       });
-    })
+    });
     return map;
   }
 
