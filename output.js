@@ -76,7 +76,8 @@ module.exports = function update(generator) {
 
     output.src.put(files, function(err, result) {
       if (err) return cb(log(err));
-      log('output %s (%s pages)', output.name, result.length || result);
+      // TODO - improve log output with relative output.path
+      log('output', output.path, u.csv(result))
       cb();
     });
   }
@@ -84,18 +85,22 @@ module.exports = function update(generator) {
   // convert file-paths to 'index' files where necessary
   function fixOutputPaths(output, files) {
 
-    var dirIndex = {};
+    // map directories to use for index files
+    var dirMap = {};
     u.each(files, function(file) {
-      dirIndex[path.dirname(file.path)] = true;
+      dirMap[path.dirname(file.path)] = true;
     });
 
+    // default output file extension is .html
+    var ext = 'ext' in output ? output.ext : '.html';
+
     u.each(files, function(file) {
-      if (dirIndex[file.path]) {
+      if (dirMap[file.path]) {
         debug('index file for %s', file.path);
         file.path = path.join(file.path, 'index');
       }
-      if (output.ext && !path.extname(file.path)) {
-        file.path = file.path + output.ext;
+      if (!path.extname(file.path)) {
+        file.path = file.path + ext;
       }
     });
   }
