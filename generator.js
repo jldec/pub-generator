@@ -40,7 +40,8 @@ function Generator(opts) {
     aliase$:           {},           // map 301 aliases to pages
     redirect$:         {},           // map 302 redirects to pages
     template$:         {},           // map compiled templates by name
-    templatePages$:    {},           // map pages by template name
+    templatePages$:    {},           // group pages by template name
+    sourcePages$:      {},           // group pages by source
     home:              null,         // root page
     pagegroups:        [],           // categorization of root-level pages - useful for generic navigation
 
@@ -129,10 +130,11 @@ function Generator(opts) {
     generator.page$           =  u.indexBy(generator.pages, '_href');
 
     generator.home = generator.page$['/'];
+    var firstPage = generator.pages[0];
 
-    // missing home - use readme or first page and redirect / to that
     if (!generator.home) {
-      generator.home = generator.page$['/readme'] || generator.pages[0];
+      generator.home = generator.page$['/readme'] ||
+        (/^\/pub\//.test(firstPage._href) ? null : firstPage);
       if (!generator.home) return log('no pages');
       u.setaVal(generator.home, 'redirect', '/');
     }
