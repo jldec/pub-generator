@@ -1,5 +1,6 @@
 /**
  * pub-generator test-basics
+ * tests for basic conversion of single file to single page (with urls)
  * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
  *
 **/
@@ -137,6 +138,47 @@ var tests =
   result: '<div data-render-html="/template"><p>hello world</p>\n</div><hr><h1>Hello</h1>\n' +
   '<div data-render-html="/template#hello"><p>fragment1</p>\n</div><hr><h1>World</h1>\n' +
   '<div data-render-html="/template#world"><p>fragment2</p>\n</div><hr>'
+},
+
+{ name: 'simple page and a main-layout template',
+  page: '/',
+  file: {
+    path: '/index.md',
+    text: 'hello world\n\n---- /main-layout.hbs ----\n\n<div class="main-layout">test<br>{{{renderPage}}}</div>'
+  },
+  result: '<div class="main-layout">test<br><div data-render-page="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
+},
+
+{ name: 'simple page and doc-layout and main-layout templates',
+  page: '/',
+  file: {
+    path: '/index.md',
+    text: 'hello world\n\n---- /main-layout.hbs ----\n\n<div class="main-layout">inner layout<br>{{{renderPage}}}</div>' +
+      '\n\n---- /doc-layout.hbs ----\n\n<div class="doc-layout">outer layout<br>{{{renderLayout}}}</div>'
+  },
+  result: '<div class="doc-layout">outer layout<br>' +
+            '<div data-render-layout="main-layout"><div class="main-layout">inner layout<br>' +
+              '<div data-render-page="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>\n\n' +
+            '</div>' +
+          '</div>'
+},
+
+{ name: 'simple page and a doc-layout template with a renderPage - confusing but works',
+  page: '/',
+  file: {
+    path: '/index.md',
+    text: 'hello world\n\n---- /doc-layout.hbs ----\n\n<div class="doc-layout">test<br>{{{renderPage}}}</div>'
+  },
+  result: '<div class="doc-layout">test<br><div data-render-page="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
+},
+
+{ name: 'simple page and a doc-layout template with a renderLayout - will break editor',
+  page: '/',
+  file: {
+    path: '/index.md',
+    text: 'hello world\n\n---- /doc-layout.hbs ----\n\n<div class="doc-layout">test<br>{{{renderLayout}}}</div>'
+  },
+  result: '<div class="doc-layout">test<br><div data-render-layout="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
 },
 
 { name: 'name with spaces etc.',

@@ -29,18 +29,18 @@ module.exports = function helpers(generator) {
 
   // return html for the current page/fragment
   hb.registerHelper('html', function(frame) {
-    return generator.renderHtml(this, { editable:true, relPaths:relPaths(frame) } );
+    return generator.renderHtml(this, { relPaths:relPaths(frame) } );
   });
 
   // like 'html' without wrapping in an editor div (for menus)
-  hb.registerHelper('html-noedit', function(frame) {
-    return generator.renderHtml(this, { editable:false, relPaths:relPaths(frame) } );
+  hb.registerHelper('html-noWrap', function(frame) {
+    return generator.renderHtml(this, { noWrap:true, relPaths:relPaths(frame) } );
   });
 
   // like 'html-noedit' with fully qualified urls (for feeds)
   hb.registerHelper('html-fq', function(frame) {
     return generator.renderHtml(this,
-    { editable:false,
+    { noWrap:true,
       fqLinks:opts.appUrl,
       fqImages:(opts.fqImages || opts.appUrl),
       relPaths:relPaths(frame) } );
@@ -48,7 +48,7 @@ module.exports = function helpers(generator) {
 
   // return html for a referenced page or page-fragment
   hb.registerHelper('fragmentHtml', function(fragment, frame) {
-    return generator.renderHtml(resolve(fragment, this), { editable:true, relPaths:relPaths(frame) } );
+    return generator.renderHtml(resolve(fragment, this), { relPaths:relPaths(frame) } );
   });
 
   // used by html renderer, returns value for relPath or nothing

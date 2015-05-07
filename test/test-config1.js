@@ -23,7 +23,9 @@ test('config1.json', function() {
   generator.home.should.be.an.instanceOf(generator.Fragment);
   generator.home._href.should.be.exactly('/');
   generator.renderDoc(generator.home).should.be.exactly(
-'<html>\n<head><title>test-config1</title></head>\n<body>\n<div data-render-html="/"><h1 id="hello-world">hello world</h1>\n</div>\n</body>\n' );
+    '<html>\n<head><title>test-config1</title></head>\n<body>\n' +
+    '<div data-render-page="default"><div data-render-html="/"><h1 id="hello-world">hello world</h1>\n' +
+    '</div></div>\n</body>\n' );
 });
 
 
@@ -42,5 +44,7 @@ test('config1-.js', function() {
   generator2.home.should.be.an.instanceOf(generator2.Fragment);
   generator2.home._href.should.be.exactly('/');
   generator2.renderDoc(generator2.home).should.be.exactly(
-'<html>\n<head><title>test-config1</title></head>\n<body>\n<div data-render-html="/"><h1 id="hello-world">hello world</h1>\n</div>\n</body>\n' );
+    '<html>\n<head><title>test-config1</title></head>\n<body>\n' +
+    '<div data-render-page="default"><div data-render-html="/"><h1 id="hello-world">hello world</h1>\n' +
+    '</div></div>\n</body>\n' );
 });

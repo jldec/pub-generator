@@ -75,6 +75,7 @@ module.exports = function render(generator) {
   // render a complete page document
   // this is the primary function for static site/page generators and servers
   // also supports scenarios where there is no layout or no doc template
+  // this function never wraps in marker divs
   function renderDoc(page) {
     return renderTemplate(page, docTemplate(page));
   }
@@ -82,14 +83,20 @@ module.exports = function render(generator) {
   // render a layout using a layout template
   // typically only happens if there is a doc template which includes {{{renderLayout}}}
   // this enables offline navigation in multi-layout use cases
+  // this function always wraps in marker divs
   function renderLayout(page) {
-    return renderTemplate(page, layoutTemplate(page));
+    var template = layoutTemplate(page);
+    var html = renderTemplate(page, template);
+    return '<div data-render-layout="' + esc(template) + '">' + html + '</div>';
   }
 
   // render a page with a non-layout page-specific template
   // this provides the primary mode of offline navigation on sites with a single layout
+  // this function always wraps in marker divs
   function renderPage(page) {
-    return renderTemplate(page, pageTemplate(page));
+    var template = pageTemplate(page);
+    var html = renderTemplate(page, template);
+    return '<div data-render-page="' + esc(template) + '">' + html + '</div>';
   }
 
   // return name of document template for a page
@@ -119,14 +126,13 @@ module.exports = function render(generator) {
 
   // render html from markdown in fragment._txt
   // rewrite local links using page names and https where necessary
-  // if opts.editable, wrap in div with data-render-html="href"
   // NOTE: opts are also passed through to marked() - opts.fqLinks will qualify urls.
   function renderHtml(fragment, opts) {
     if (!fragment || !fragment._txt) return '';
     var html = renderMarkdown(fragment._txt, opts);
-    // WARNING - this will break user CSS if selectors depend on specific patterns of nested/sequenced elements
-    if (opts && opts.editable) return '<div data-render-html="' + esc(fragment._href) + '">' + html + '</div>';
-    return html;
+    // use opts.noWrap to avoid breaking CSS nested selectors like li > ul in menus
+    if (opts && opts.noWrap) return html;
+    return '<div data-render-html="' + esc(fragment._href) + '">' + html + '</div>';
   };
 
 
