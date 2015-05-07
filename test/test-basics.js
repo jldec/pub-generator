@@ -26,7 +26,16 @@ var tests =
     path: '/index.md',
     text: 'hello world'
   },
-  result: '<p>hello world</p>\n'
+  result: '<div data-render-html="/"><p>hello world</p>\n</div>'
+},
+
+{ name: '/dir/ directory index.md with no label',
+  page: '/dir/',
+  file: {
+    path: '/dir/index.md',
+    text: 'hello world'
+  },
+  result: '<div data-render-html="/dir/"><p>hello world</p>\n</div>'
 },
 
 { name: '/bar in bar.md with no label',
@@ -35,7 +44,16 @@ var tests =
     path: '/bar.md',
     text: 'hello world'
   },
-  result: '<p>hello world</p>\n'
+  result: '<div data-render-html="/bar"><p>hello world</p>\n</div>'
+},
+
+{ name: '/dir/bar in bar.md with no label',
+  page: '/dir/bar',
+  file: {
+    path: '/dir/bar.md',
+    text: 'hello world'
+  },
+  result: '<div data-render-html="/dir/bar"><p>hello world</p>\n</div>'
 },
 
 { name: '/bar in foo.md with label /bar',
@@ -44,7 +62,7 @@ var tests =
     path: '/foo.md',
     text: '---- /bar ----\n\nhello world'
   },
-  result: '<p>hello world</p>\n'
+  result: '<div data-render-html="/bar"><p>hello world</p>\n</div>'
 },
 
 { name: 'home page missing',
@@ -62,7 +80,7 @@ var tests =
     path: '/foo.md',
     text: '---- / ----\n\nhello world'
   },
-  result: '<p>hello world</p>\n'
+  result: '<div data-render-html="/"><p>hello world</p>\n</div>'
 },
 
 { name: 'minimal page with one update',
@@ -71,7 +89,7 @@ var tests =
     path: '/update.md',
     text: 'hello world\n\n---- (update) ----\n\nhellow'
   },
-  result: '<p>hellow</p>\n'
+  result: '<div data-render-html="/update"><p>hellow</p>\n</div>'
 },
 
 { name: 'minimal page with two extra fragments',
@@ -80,7 +98,9 @@ var tests =
     path: '/fragments.md',
     text: 'hello world\n\n---- ----\n\nfragment1\n\n---- ----\n\nfragment2'
   },
-  result: '<p>hello world</p>\n<p>fragment1</p>\n<p>fragment2</p>\n'
+  result: '<div data-render-html="/fragments"><p>hello world</p>\n' +
+  '</div><div data-render-html="/fragments#fragment-1"><p>fragment1</p>\n' +
+  '</div><div data-render-html="/fragments#fragment-2"><p>fragment2</p>\n</div>'
 },
 
 { name: 'minimal page with two extra fragments and customized default template',
@@ -90,7 +110,9 @@ var tests =
     text: 'hello world\n\n---- ----\n\nfragment1\n\n---- ----\n\nfragment2\n\n' +
     '---- /default.hbs ----\n\n{{{html}}}{{#each _fragments}}<hr>{{{html}}}{{/each}}'
   },
-  result: '<p>hello world</p>\n<hr><p>fragment1</p>\n<hr><p>fragment2</p>\n'
+  result: '<div data-render-html="/template"><p>hello world</p>\n' +
+  '</div><hr><div data-render-html="/template#fragment-1"><p>fragment1</p>\n' +
+  '</div><hr><div data-render-html="/template#fragment-2"><p>fragment2</p>\n</div>'
 },
 
 { name: 'page with fragments and non-default template',
@@ -100,7 +122,9 @@ var tests =
     text: '---- ----\ntemplate: special\n\nhello world\n\n---- ----\n\nfragment1\n\n---- ----\n\nfragment2\n\n' +
     '---- /special.hbs ----\n\n{{{html}}}{{#each _fragments}}<hr>{{{html}}}{{/each}}<hr>'
   },
-  result: '<p>hello world</p>\n<hr><p>fragment1</p>\n<hr><p>fragment2</p>\n<hr>'
+  result: '<div data-render-html="/template"><p>hello world</p>\n' +
+  '</div><hr><div data-render-html="/template#fragment-1"><p>fragment1</p>\n' +
+  '</div><hr><div data-render-html="/template#fragment-2"><p>fragment2</p>\n</div><hr>'
 },
 
 { name: 'page with 2 named fragments and a custom template',
@@ -110,7 +134,9 @@ var tests =
     text: '---- ----\ntemplate: custom\n\nhello world\n\n---- Hello ----\n\nfragment1\n\n---- World ----\n\nfragment2\n\n' +
     '---- /custom.hbs ----\n\n{{{html}}}{{#each _fragments}}<hr><h1>{{name}}</h1>\n{{{html}}}{{/each}}<hr>'
   },
-  result: '<p>hello world</p>\n<hr><h1>Hello</h1>\n<p>fragment1</p>\n<hr><h1>World</h1>\n<p>fragment2</p>\n<hr>'
+  result: '<div data-render-html="/template"><p>hello world</p>\n</div><hr><h1>Hello</h1>\n' +
+  '<div data-render-html="/template#hello"><p>fragment1</p>\n</div><hr><h1>World</h1>\n' +
+  '<div data-render-html="/template#world"><p>fragment2</p>\n</div><hr>'
 },
 
 { name: 'name with spaces etc.',
@@ -119,7 +145,7 @@ var tests =
     path: '/Name with spaces _ @.md',
     text: 'hello world'
   },
-  result: '<p>hello world</p>\n'
+  result: '<div data-render-html="/name-with-spaces"><p>hello world</p>\n</div>'
 },
 
 ];

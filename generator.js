@@ -54,6 +54,7 @@ function Generator(opts) {
 
     // other methods
     compilePages:      compilePages, // sync recompile pages from source
+    logPages:          logPages,     // log pages and templates
     getPage:           getPage,      // async get page (respects getX headers)
     findPage:          findPage,     // sync get page (no getX headers support)
     redirect:          redirect,     // lookup alias or redirect url
@@ -100,6 +101,19 @@ function Generator(opts) {
     });
   }
 
+  function logPages() {
+    u.each(generator.pages, function(page) {
+      if (!/^\/pub\/|^\/admin\/|^\/server\//.test(page._href)) {
+        log('page: ' + page._href);
+      }
+    });
+    u.each(generator.template$, function(t, name) {
+      if (!/^pub\//.test(name)) {
+        log('template: ' + name);
+      }
+    });
+  }
+
   function listen(isServer) {
     if (isServer) {
       u.each(opts.outputs, function(output) {
@@ -126,23 +140,35 @@ function Generator(opts) {
   }
 
   function compilePages(pageFragments) {
-    generator.pages           =  require('./makepages')(pageFragments, opts);
-    generator.page$           =  u.indexBy(generator.pages, '_href');
+    var pgs = generator.pages = require('./makepages')(pageFragments, opts);
+    var p$  = generator.page$ = u.indexBy(pgs, '_href');
 
-    generator.home = generator.page$['/'];
-    var firstPage = generator.pages[0];
+    generator.home = p$['/'];
 
+    // no '/', look for a de-facto home
     if (!generator.home) {
-      generator.home = generator.page$['/readme'] ||
-        (/^\/pub\//.test(firstPage._href) ? null : firstPage);
-      if (!generator.home) return log('no pages');
-      u.setaVal(generator.home, 'redirect', '/');
+      generator.home =
+        p$['/index']       ||
+        p$['/index.html']  ||
+        p$['/index.htm']   ||
+        p$['/readme']      ||
+        p$['/readme.html'] ||
+        p$['/readme.htm']  ||
+        (pgs[0] && !/^\/pub\/|^\/admin\/|^\/server\//.test(pgs[0]._href) ? pgs[0] : null);
+
+      if (!generator.home) {
+        log('no generated pages');
+      }
+      else {
+        // redirect / to de-facto home
+        u.setaVal(generator.home, 'redirect', '/');
+      }
     }
 
     generator.aliase$         =  indexPages('alias');
     generator.redirect$       =  indexPages('redirect');
-    generator.templatePages$  =  u.groupBy(generator.pages, 'template');
-    generator.sourcePage$     =  u.groupBy(generator.pages, function(page) { return page._file.source.name; });
+    generator.templatePages$  =  u.groupBy(pgs, 'template');
+    generator.sourcePage$     =  u.groupBy(pgs, function(page) { return page._file.source.name; });
     generator.emit('pages-ready');
   }
 

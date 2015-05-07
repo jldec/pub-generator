@@ -57,9 +57,9 @@ module.exports = function parseFiles(source, opts) {
       fragment._file = file;
       parseHeaders(fragment, source);
 
-      // hack for md-headings - always treat entire header text as name - no label parsing
+      // hack for md-headings - treat entire header text as name - no label parsing
       var lbl = source.fragmentDelim === 'md-headings' ?
-        { _name: u.slugify(fragment._lbl, source.slugify), name: fragment._lbl } :
+        { _name:file._name, name:fragment._lbl } :
         // .page and .fragment headers also treated as labels for now
         parseLabel(fragment._lbl || fragment.page || fragment.fragment, source.slugify);
 

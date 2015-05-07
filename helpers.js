@@ -16,7 +16,6 @@ module.exports = function helpers(generator) {
   var opts = generator.opts;
 
   var hb = generator.handlebars;
-  function editable() { return !opts.production && opts.editor }
 
   // document templates call {{{renderLayout}}} to generate main body html for a page
   hb.registerHelper('renderLayout', function(frame) {
@@ -30,12 +29,12 @@ module.exports = function helpers(generator) {
 
   // return html for the current page/fragment
   hb.registerHelper('html', function(frame) {
-    return generator.renderHtml(this, { editable:editable() } );
+    return generator.renderHtml(this, { editable:true, relPaths:relPaths(frame) } );
   });
 
   // like 'html' without wrapping in an editor div (for menus)
   hb.registerHelper('html-noedit', function(frame) {
-    return generator.renderHtml(this, { editable:false } );
+    return generator.renderHtml(this, { editable:false, relPaths:relPaths(frame) } );
   });
 
   // like 'html-noedit' with fully qualified urls (for feeds)
@@ -43,13 +42,22 @@ module.exports = function helpers(generator) {
     return generator.renderHtml(this,
     { editable:false,
       fqLinks:opts.appUrl,
-      fqImages:(opts.fqImages || opts.appUrl) } );
+      fqImages:(opts.fqImages || opts.appUrl),
+      relPaths:relPaths(frame) } );
   });
 
   // return html for a referenced page or page-fragment
   hb.registerHelper('fragmentHtml', function(fragment, frame) {
-    return generator.renderHtml(resolve(fragment, this), { editable:editable() } );
+    return generator.renderHtml(resolve(fragment, this), { editable:true, relPaths:relPaths(frame) } );
   });
+
+  // used by html renderer, returns value for relPath or nothing
+  // uses page._filePath if it exists (instead of _href) e.g for output to file
+  function relPaths(frame) {
+    if (!opts.relPaths) return;
+    var page = frame && frame.data && frame.data.root;
+    if (page) return u.relPath(page._filePath || page._href);
+  }
 
   // return html from applying another template
   hb.registerHelper('partial', function(template, frame) {
@@ -86,22 +94,27 @@ module.exports = function helpers(generator) {
 
   // return link html for this
   hb.registerHelper('pageLink', function(frame) {
-    return generator.renderLink( {href:this._href} );
+    return generator.renderLink( {href:this._href, relPaths:relPaths(frame) } );
   });
 
   // return link href for this (fully qualified)
   hb.registerHelper('pageHref', function(frame) {
-    return generator.renderLink( {href:this._href, hrefOnly:true } );
+    return generator.renderLink( {href:this._href, hrefOnly:true, relPaths:relPaths(frame) } );
   });
 
   // return link html for a url/name
   hb.registerHelper('linkTo', function(url, name, frame) {
-    return generator.renderLink( {href:url, text:name} );
+    return generator.renderLink( {href:url, text:name, relPaths:relPaths(frame) } );
   });
 
   // return link to next page
   hb.registerHelper('next', function(frame) {
-    return (this._next ? generator.renderLink( {href:this._next._href} ) : '');
+    return (this._next ? generator.renderLink( {href:this._next._href, relPaths:relPaths(frame) } ) : '');
+  });
+
+  // return link to previous page
+  hb.registerHelper('prev', function(frame) {
+    return (this._prev ? generator.renderLink( {href:this._prev._href, relPaths:relPaths(frame) } ) : '');
   });
 
   // encode URI component
@@ -109,11 +122,6 @@ module.exports = function helpers(generator) {
 
   // escape csv values containing , or "
   hb.registerHelper('csvqt', u.csvqt);
-
-  // return link to previous page
-  hb.registerHelper('prev', function(frame) {
-    return (this._prev ? generator.renderLink( {href:this._prev._href} ) : '');
-  });
 
   // page titles use page.title or page.name by convention allowing SEO override of title different from name
   hb.registerHelper('title', function(frame) {
@@ -154,6 +162,8 @@ module.exports = function helpers(generator) {
   hb.registerHelper('opts', function(opt) {
     return opts[opt];
   });
+
+  hb.registerHelper('htmlify', u.htmlify);
 
   // TODO: fix this helper to support generating static HTML for production while running on development
   hb.registerHelper('ifDevTest', function(frame) {
@@ -236,7 +246,19 @@ module.exports = function helpers(generator) {
            '[no name]';
   });
 
-  // turn text with line breaks into escaped html with <br>
+  // slugify _href e.g. for css
+  // omits leading slash, returns '' for /
+  hb.registerHelper('href-slug', function() {
+    return u.slugify(this._href.slice(1));
+  });
+
+  // if opts.relPaths, returns ../ for each level down, ./ for root level
+  // uses _filePath if it exists (instead of _href) e.g for output to file
+  hb.registerHelper('relPath', function() {
+    return opts.relPaths ? u.relPath(this._filePath || this._href) : '';
+  });
+
+ // turn text with line breaks into escaped html with <br>
   hb.registerHelper('hbr', u.hbreak);
 
   // minimal text-only diff renderer (for use inside hover or title tag)

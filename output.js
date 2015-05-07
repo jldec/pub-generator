@@ -49,7 +49,9 @@ module.exports = function update(generator) {
 
 
   // outputOutput()
-  // unthrottled single output output with path-rewriting for index files.
+  // unthrottled single output output.
+  // converts pages which are also directories into dir/index.html files
+  // render dir/index.html files with one-level-deeper relPaths (if opts.relPaths)
   //
   // TODO
   // - smarter diffing, incremental output
@@ -64,20 +66,30 @@ module.exports = function update(generator) {
     debug('output %s', output.name);
     var files = output.files = [];
 
-    // generate only static pages (not /server or /admin or /pub)
+    // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function(page) {
       if (/^\/(admin|pub|server)(\/|$)/.test(page._href)) return;
-      var file = { path: page._href, text: generator.renderDoc(page) }
+      var file = { page: page, path: page._href }
       if (page['http-header']) { file['http-header'] = page['http-header']; }
       files.push(file);
     });
 
+    // pass2:
     fixOutputPaths(output, files);
+
+    // pass3: generate using (possibly modified) file paths for relPaths
+    // TODO: find a better way to parameterize renderer - don't contaminate pages
+    u.each(files, function(file) {
+      if (opts.relPaths) { file.page._filePath = file.path; }
+      file.text = generator.renderDoc(file.page);
+      delete file.page._filePath
+      delete file.page;
+    });
 
     output.src.put(files, function(err, result) {
       if (err) return cb(log(err));
       // TODO - improve log output with relative output.path
-      log('output', output.path, u.csv(result))
+      log('output %s %s generated files', output.path, result.length)
       cb();
     });
   }
@@ -89,18 +101,24 @@ module.exports = function update(generator) {
     var dirMap = {};
     u.each(files, function(file) {
       dirMap[path.dirname(file.path)] = true;
+
+      // edge case - treat /foo/ as directory too
+      if (/\/$/.test(file.path) && path.dirname(file.path) !== file.path) {
+        dirMap[file.path] = true;
+      }
     });
 
     // default output file extension is .html
-    var ext = 'ext' in output ? output.ext : '.html';
+    var extension = 'extension' in output ? (output.extension || '') : '.html';
+    var indexFile = output.indexFile || 'index'
 
     u.each(files, function(file) {
       if (dirMap[file.path]) {
         debug('index file for %s', file.path);
-        file.path = path.join(file.path, 'index');
+        file.path = path.join(file.path, indexFile);
       }
-      if (!path.extname(file.path)) {
-        file.path = file.path + ext;
+      if (!/\.[^\/]*$/.test(file.path)) {
+        file.path = file.path + extension;
       }
     });
   }

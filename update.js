@@ -25,6 +25,7 @@ module.exports = function update(generator) {
   generator.clientUpdateFragmentText = clientUpdateFragmentText;
   generator.clientSaveHoldText       = clientSaveHoldText;
   generator.clientSave               = u.throttleMs(clientSave, (opts.throttleClientSave || '5s'));
+  generator.clientSaveUnThrottled    = clientSave;
   generator.serverSave               = serverSave;
   generator.flushCaches              = flushCaches;
   generator.reloadSources            = reloadSources;
@@ -264,9 +265,8 @@ module.exports = function update(generator) {
       cb(null, results);
     });
 
-    // avoid double-reload after save
-    // TODO: validate correct behavior with cache (esp if not writeThru)
-    if (!source._watching) {
+    // avoid double-reload after save when watching (or watching but cached without writethru)
+    if (!source._watching || source.src.flush) {
       generator.reload();
     }
   }

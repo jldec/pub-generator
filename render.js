@@ -138,17 +138,21 @@ module.exports = function render(generator) {
   // could be extended to rewrite links
   // NOTE: params passed as strings are assumed pre-html-escaped, params in {} are not.
   function renderLink(href, title, text) {
-    var opts = {};
-    if (typeof href === 'object') {
-      opts = href;
-      href = esc(opts.href);
-      title = esc(opts.title);
-      text = esc(opts.text);
+    var linkOpts;
+
+    if (typeof href !== 'object') {
+      linkOpts = this.options; // this -> marked renderer
+    }
+    else {
+      linkOpts = href;
+      href = esc(linkOpts.href);
+      title = esc(linkOpts.title);
+      text = esc(linkOpts.text);
     }
 
     var target = '';
 
-    if (renderer.options.linkNewWindow && /^http/i.test(href)) {
+    if (opts.linkNewWindow && /^http/i.test(href)) {
       target = ' target="_blank"';
     }
     else if (/\^$/.test(u.str(title))) {
@@ -156,12 +160,16 @@ module.exports = function render(generator) {
       target = ' target="_blank"';
     }
 
-    if (renderer.options.fqImages && /^\/images\//.test(href)) { href = renderer.options.fqImages + href; }
-    else if (renderer.options.fqLinks && /^\//.test(href)) { href = renderer.options.fqLinks + href; }
+    var imgPrefix = linkOpts.fqImages || linkOpts.relPaths;
+    var linkPrefix = linkOpts.fqLinks || linkOpts.relPaths;
 
-    if (opts.hrefOnly) return href;
-
+    // lookup page before munging href
     var page = generator.page$[href];
+
+    // TODO - fix hardwired /images/ prefix
+    if (imgPrefix && /^\/images\//.test(href)) { href = imgPrefix + href; }
+    else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
+
     var name = text || (page && (page.name || (!page._hdr && page._file.path.slice(1)))) || href || '--';
     var onclick = (page && page.onclick) ? ' onclick="' + esc(page.onclick) + '"' : '';
 
