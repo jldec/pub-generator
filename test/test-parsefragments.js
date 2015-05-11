@@ -13,7 +13,6 @@ var parseHeaders = require('../parseheaders');
 
 var assert = require('assert')
 var u = require('pub-util');
-var actual, expected;
 
 var newstyle = [
   {in:'', out:[ { _txt: '', _hdr: '' } ]},
@@ -155,16 +154,63 @@ var oldstyle = [
       { _hdr: '----boo\n----\n',      _txt: '', _lbl: 'boo' } ]}
 ];
 
+var mdstyle = [
+  {in:'', out:[ { _txt: '', _hdr: '' } ]},
+  {in:'abc', out:[ { _txt: 'abc', _hdr: '' } ]},
+  {in:'abc\n', out:[ { _txt: 'abc\n', _hdr: '' } ]},
+  {in:'a\nbc', out:[ { _txt: 'a\nbc', _hdr: '' } ]},
+  {in:'\n\n\n', out:[ { _txt: '\n\n\n', _hdr: '' } ]},
+  {in:'---', out:[ { _txt: '---', _hdr: '' } ]},
+  {in:' #---', out:[ { _txt: ' #---', _hdr: '' } ]},
+  {in:'\n-#--', out:[ { _txt: '\n-#--', _hdr: '' } ]},
+  {in:'\n #', out:[ { _txt: '\n #', _hdr: '' } ]},
+  {in:'\n #\n', out:[ { _txt: '\n #\n', _hdr: '' } ]},
+  {in:'---\n---', out:[ { _txt: '---\n---', _hdr: '' } ]},
+  {in:'-----', out:[ { _txt: '-----', _hdr: '' } ]},
+  {in:'------', out:[ { _txt: '------', _hdr: '' } ]},
+  {in:'-----\n-----', out:[ { _txt: '-----\n-----', _hdr: '' } ]},
+  {in:'#', out:[ { _txt: '#', _hdr: '' } ]},
+  {in:'# #', out:[ { _txt: '# #', _hdr: '' } ]},
+  {in:'#x#', out:[ { _txt: '#x#', _hdr: '', _lbl:'x' } ]},
+  {in:'# x#', out:[ { _txt: '# x#', _hdr: '', _lbl:'x' } ]},
+  {in:'#x #', out:[ { _txt: '#x #', _hdr: '', _lbl:'x' } ]},
+  {in:'# x #', out:[ { _txt: '# x #', _hdr: '', _lbl:'x' } ]},
+  {in:'# X #', out:[ { _txt: '# X #', _hdr: '', _lbl:'X' } ]},
+  {in:'# ####', out:[ { _txt: '# ####', _hdr: ''} ]},
+  {in:'# x ####', out:[ { _txt: '# x ####', _hdr: '', _lbl:'x' } ]},
+  {in:'#######', out:[ { _txt: '#######', _hdr: ''} ]},
+  {in:'####### x', out:[ { _txt: '####### x', _hdr: '', _lbl:'# x' } ]},
+  {in:' \n#', out:[ { _txt: ' \n', _hdr: '' },{ _txt: '#', _hdr: '' } ]},
+  {in:'#\n#', out:[ { _txt: '#\n', _hdr: '' },{ _txt: '#', _hdr: '' } ]},
+  {in:'#\n##', out:[ { _txt: '#\n', _hdr: '' },{ _txt: '##', _hdr: '' } ]},
+  {in:'#\n## x', out:[ { _txt: '#\n', _hdr: '' },{ _txt: '## x', _hdr: '', _lbl: 'x'} ]},
+  {in:'#\n## x\n', out:[ { _txt: '#\n', _hdr: '' },{ _txt: '## x\n', _hdr: '', _lbl: 'x' } ]},
+  {in:'#\n## x\nhello', out:[ { _txt: '#\n', _hdr: '' },{ _txt: '## x\nhello', _hdr: '', _lbl: 'x' } ]},
+  {in:'#\n## x\nhello\nline2', out:[ { _txt: '#\n', _hdr: '' },{ _txt: '## x\nhello\nline2', _hdr: '', _lbl: 'x' } ]},
+  {in:
+      '# doc heading\nhello\n' +
+      '## sub-heading 1\nworld\n'  +
+      '## sub-heading 2\nout there\n',
+   out:[
+      { _hdr: '', _txt: '# doc heading\nhello\n',        _lbl:'doc heading'   },
+      { _hdr: '', _txt: '## sub-heading 1\nworld\n',     _lbl:'sub-heading 1' },
+      { _hdr: '', _txt: '## sub-heading 2\nout there\n', _lbl:'sub-heading 2' } ]}
+];
+
+
+
 newstyle.forEach(function(t) { run('newstyle', t, { fragmentDelim:true }); });
 oldstyle.forEach(function(t) { run('oldstyle', t, { fragmentDelim:true, leftDelim:'----', rightDelim:'', headerDelim:'----' } ); });
+mdstyle.forEach(function(t)  { run('mdstyle',  t, { fragmentDelim:'md-headings' } ); });
 
 function run(name, t, opts){
   opts = opts || {};
   test(name + ': ' + u.inspect(t.in) + ' → ' + u.inspect(t.out), function(){
-    actual = parseFragments(t.in, opts);
+    var actual = parseFragments(t.in, opts);
     actual.forEach(function(fragment) { parseHeaders(fragment); });
-    expected = t.out;
-    assert.deepEqual(actual, expected);
+
+console.log(actual);
+    assert.deepEqual(actual, t.out);
     assert(rebuild(t.out) === t.in, 'source string cannot be rebuilt from fragments');
   });
 }

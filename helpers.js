@@ -97,7 +97,7 @@ module.exports = function helpers(generator) {
     return generator.renderLink( {href:this._href, relPaths:relPaths(frame) } );
   });
 
-  // return link href for this (fully qualified)
+  // return link href for this
   hb.registerHelper('pageHref', function(frame) {
     return generator.renderLink( {href:this._href, hrefOnly:true, relPaths:relPaths(frame) } );
   });
@@ -138,7 +138,7 @@ module.exports = function helpers(generator) {
     return '';
   });
 
-  // block helper applies headers like meta-{{name}}={{content}}
+  // block helper applies headers for values with pattern meta-<name>: <value>
   hb.registerHelper('eachMeta', function(frame) {
     var metakeys = u.filter(u.keys(this), function(key) { return /^meta-/.test(key); });
     return u.map(u.pick(this, metakeys), function(val, key) {
@@ -155,18 +155,20 @@ module.exports = function helpers(generator) {
     return u.map(rg, frame.fn).join('');
   });
 
-  hb.registerHelper('fqurl', function() {
+  hb.registerHelper('fqurl', function(frame) {
     return opts.appUrl + this._href;
   });
 
-  hb.registerHelper('opts', function(opt) {
+  hb.registerHelper('option', function(opt, frame) {
     return opts[opt];
   });
 
-  hb.registerHelper('htmlify', u.htmlify);
+  hb.registerHelper('ifOption', function(opt, frame) {
+    if (opts[opt]) { return frame.fn(this); }
+    else { return frame.inverse(this); }
+  });
 
-  // TODO: fix this helper to support generating static HTML for production while running on development
-  hb.registerHelper('ifDevTest', function(frame) {
+  hb.registerHelper('ifDev', function(frame) {
     if (!opts.production) { return frame.fn(this); }
     else { return frame.inverse(this); }
   });
@@ -227,23 +229,10 @@ module.exports = function helpers(generator) {
   // turn list into single string of values separated by commas
   hb.registerHelper('csv', u.csv);
 
-  // turn slug back into a camel-cased & space separated name
-  hb.registerHelper('h', u.unslugify);
-
-  // figure out a name somehow...
-  hb.registerHelper('_fragment', function() {
+  // return current fragment ID or ''
+  hb.registerHelper('fragmentID', function() {
     var h = u.parseHref(this._href);
     return (h.fragment && h.fragment.slice(1)) || '';
-  });
-
-  // figure out a name somehow...
-  hb.registerHelper('name', function() {
-    var h = u.parseHref(this._href);
-    return this.name ||
-           this.title ||
-           (h.fragment && h.fragment.slice(1)) ||
-           path.basename(h.path) ||
-           '[no name]';
   });
 
   // slugify _href e.g. for css

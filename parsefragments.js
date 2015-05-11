@@ -28,11 +28,12 @@ var Fragment = require('./fragment');
 var u = require('pub-util');
 
 module.exports = function parseFragments(srctext, opts) {
-  var leftDelim, rightDelim, headerDelim, delimiterGrammar;
+  var leftDelim, rightDelim, headerDelim, delimiterGrammar, noHeaders;
 
   // experimental - TODO, fix fenced blocks
   if (opts.fragmentDelim === 'md-headings') {
-    delimiterGrammar = /^#+(.*)$/m;
+    delimiterGrammar = /^#{1,6}(.*?)#*$/m;
+    noHeaders = true; // keep delimiter inside _txt; _hdr = ''
   }
   else if (opts.fragmentDelim) {
 
@@ -51,36 +52,40 @@ module.exports = function parseFragments(srctext, opts) {
   var pos = 0;          // current offset in srctext
   var fragments = [];   // array of fragments to return
 
-  var currentFragment = fragments[0] = new Fragment();
+  var currentFragment = new Fragment();
+  var fragmentCount = fragments.push(currentFragment);
 
   while (srctext) {
-
-    if (match = (opts.fragmentDelim && delimiterGrammar.exec(srctext))) {
-      processFragment(match); // replaces srctext with leftover text
-      continue;
+    if (opts.fragmentDelim) {
+      if (match = (delimiterGrammar.exec(srctext))) {
+        processFragment(match); // consume some srctext
+        continue;
+      }
     }
-
+    // done
     currentFragment._txt += srctext;
     break;
   }
 
   return fragments;
 
+  //--//--//--//--//--//--//--//--//
+
   function processFragment(match) {
     var hpos = match.index;
-    var txtbefore = srctext.slice(0, hpos);
-    var isfirst = (pos === 0 && hpos === 0);
     var hlen = match[0].length;
-    var label = u.trim(match[1]);
 
-    currentFragment._txt += txtbefore;
+    currentFragment._txt += srctext.slice(0, hpos);
 
-    if (!isfirst) {
+    if (pos || hpos) {
       currentFragment = new Fragment();
-      fragments.push(currentFragment);
+      fragmentCount = fragments.push(currentFragment);
     }
 
-    currentFragment._hdr = match[0];
+    currentFragment._hdr = noHeaders ? '' : match[0];
+    currentFragment._txt = noHeaders ? match[0] : '';
+
+    var label = u.trim(match[1]);
     if (label) { currentFragment._lbl = label; }
 
     srctext = srctext.slice(hpos + hlen);

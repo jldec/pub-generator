@@ -133,7 +133,7 @@ var tests =
   file: {
     path: '/template.md',
     text: '---- ----\ntemplate: custom\n\nhello world\n\n---- Hello ----\n\nfragment1\n\n---- World ----\n\nfragment2\n\n' +
-    '---- /custom.hbs ----\n\n{{{html}}}{{#each _fragments}}<hr><h1>{{name}}</h1>\n{{{html}}}{{/each}}<hr>'
+    '---- /custom.hbs ----\n\n{{{html}}}{{#each _fragments}}<hr><h1>{{title}}</h1>\n{{{html}}}{{/each}}<hr>'
   },
   result: '<div data-render-html="/template"><p>hello world</p>\n</div><hr><h1>Hello</h1>\n' +
   '<div data-render-html="/template#hello"><p>fragment1</p>\n</div><hr><h1>World</h1>\n' +
