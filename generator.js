@@ -151,6 +151,9 @@ function Generator(opts) {
         p$['/index']       ||
         p$['/index.html']  ||
         p$['/index.htm']   ||
+        p$['/readme']      ||
+        p$['/readme.html'] ||
+        p$['/readme.htm']  ||
         (pgs[0] && !/^\/pub\/|^\/admin\/|^\/server\//.test(pgs[0]._href) ? pgs[0] : null);
 
       if (!generator.home) {
