@@ -17,31 +17,35 @@ var getSources = require('../getsources');
 var serializeFiles = require('../serialize')().serializeFiles;
 
 var files = [
-  { path: '/draft-page.md' },
   { path: '/index.md' },
+  { path: '/draft-page.md' },
   { path: '/page1-bis.md' },
   { path: '/page1.md' },
   { path: '/page2~.md' },
   { path: '/page3.md' },
   { path: '/page4.md' },
+  { path: '/CamelCase Sub-Dir/index.md' },
+  { path: '/CamelCase Sub-Dir/Nice File Name.md' }
 ];
 
 var fragments =
 [
-  { _href: '/draft-page',
-    _hdr: '---- (draft) ----\n\n',
-    _draft: true,
-    _txt: 'just some text\n',
-    _file: files[0] },
-
-  { _href: '/',
+  { // NOTE name comes from parent dir for /index.md
+    _href: '/',
     _hdr: '',
     _txt: '# root page\n- hello world\n\n## heading2\n\npara\n\n',
-    _file: files[1] },
+    _file: files[0],
+    name: '/' },
 
   { _href: '/#fragment-1',
     _hdr: '---- ----\n\n',
     _txt: '## fragment 1',
+    _file: files[0] },
+
+  { _href: '/draft-page',
+    _hdr: '---- (draft) ----\n\n',
+    _draft: true,
+    _txt: 'just some text\n',
     _file: files[1] },
 
   { // NOTE update page: header changes _href
@@ -55,11 +59,13 @@ var fragments =
       _txt: '# page1\ncontent\ncontent\n',
       _file: files[3] }},
 
-  { _href: '/page2',
+  { // NOTE extra name property comes from filename with ~
+    _href: '/page2',
     a: '1',
     _hdr: '---- ----\na:1\n\n',
     _txt: '# page2\ncontent\ncontent\n\n',
-    _file: files[4] },
+    _file: files[4],
+    name: 'page2~' },
 
   { _href: '/page2#fragment-1',
     _hdr: '---- ----\n\n',
@@ -99,13 +105,26 @@ var fragments =
       _href: '/page4',
       _hdr: '',
       _txt: '# page4\n\ninitial text\n\n',
-      _file: files[6] }}
+      _file: files[6] }},
+
+  { _href: '/camelcase-sub-dir/',
+    _hdr: '',
+    _txt: '## CamelCase Sub-Dir Heading\ncontent\n',
+    _file: files[7],
+    name: 'CamelCase Sub-Dir' },
+
+  { _href: '/camelcase-sub-dir/nice-file-name',
+    _hdr: '',
+    _txt: '## heading\ncontent',
+    _file: files[8],
+    name: 'Nice File Name' }
+
 ];
 
-files[0].fragments = [fragments[0]];
+files[0].fragments = [fragments[0],
+                      fragments[1]];
 
-files[1].fragments = [fragments[1],
-                      fragments[2]];
+files[1].fragments = [fragments[2]];
 
 files[2].fragments = [fragments[3]];
 
@@ -123,6 +142,9 @@ files[5].fragments = [fragments[6],
 files[6].fragments = [fragments[11]._update,
                       fragments[11]];
 
+files[7].fragments = [fragments[12]];
+files[8].fragments = [fragments[13]];
+
 files[0].source = sources[0];
 files[1].source = sources[0];
 files[2].source = sources[0];
@@ -130,6 +152,8 @@ files[3].source = sources[0];
 files[4].source = sources[0];
 files[5].source = sources[0];
 files[6].source = sources[0];
+files[7].source = sources[0];
+files[8].source = sources[0];
 
 sources[0].files = files;
 sources[0].fragments =  u.map(fragments, function(f) { return f._update || f; });
@@ -144,7 +168,7 @@ test('md directory tree', function(done) {
   getSources(_sources, opts, function(err, actual) {
     if (err) return done(err);
 
-    // console.log(u.inspect(actual, {depth:3}));
+// console.log(u.inspect(actual, {depth:3}));
 
     assertNoDiff(actual, fragments, 'parsed');
 

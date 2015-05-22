@@ -176,7 +176,7 @@ module.exports = function render(generator) {
     if (imgPrefix && /^\/images\//.test(href)) { href = imgPrefix + href; }
     else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
 
-    var name = text || (page && (page.name || (!page._hdr && page._file.path.slice(1)))) || href || '--';
+    var name = text || (page && (page.name || page.title || (!page._hdr && page._file.path.slice(1)))) || href || '--';
     var onclick = (page && page.onclick) ? ' onclick="' + esc(page.onclick) + '"' : '';
 
     return '<a href="' + (href || '#') + '"' + (title ? ' title="' + title + '"' : '') + target + onclick + '>' + name + '</a>';
@@ -222,23 +222,23 @@ module.exports = function render(generator) {
   }
 
   // parse links from fragment text as a side effect of rendering with marked
-  // returns an array of hrefs (not fully qualified) usable for lookups in page$
-  // does not use generator.renderer with extended images, forms etc.
+  // returns an array of {href,title,text} (not fully qualified) usable for lookups in page$
   function parseLinks(fragment) {
     if (!fragment || !fragment._txt) return;
     var links = [];
-    var renderer = new marked.Renderer();
+    var renderer = generator.renderer;
+    var oldLinkFn = renderer.link;
     renderer.link = function(href, title, text) {
-      links.push(href);
+      links.push( { href:href, title:title, text:text } );
       return ''; // don't care about actual rendered result
     };
     marked(fragment._txt, {renderer:renderer});
+    renderer.link = oldLinkFn; // revert
     return links;
   }
 
   // similar to parseLinks
   // temporarily hooks generator renderer to compile images and links for all pages
-  // this function assumes that templates and pages are ready for rendering
   function inventory() {
     var images = generator.images = {};
     var currentPage;

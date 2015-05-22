@@ -28,7 +28,8 @@ var fragments =
   { _href: '/',
     _hdr:'',
     _txt: '# root page\n- hello world\n\n## heading2\n\npara\n\n',
-    _file: files[0] },
+    _file: files[0],
+    name: '/' },
 
   { _href: '/#fragment-1',
     _hdr:'----\n----\n',
@@ -44,7 +45,8 @@ var fragments =
     a: '1',
     _hdr:'----\na:1\n\n----\n',
     _txt: '\n# page2\ncontent\ncontent\n\n',
-    _file: files[2] },
+    _file: files[2],
+    name: 'page2~' },
 
   { _href: '/page2#fragment-1',
     _hdr:'----\n----\n',
@@ -112,7 +114,7 @@ test('md-old directory tree', function(done) {
   getSources(_sources, opts, function(err, actual) {
     if (err) return done(err);
 
-    // console.log(u.inspect(actual, {depth:3}));
+// console.log(u.inspect(actual, {depth:3}));
     assertNoDiff(actual, fragments, 'parsed');
 
     _sources[0].files = serializeFiles(_sources[0].files); // replace memoized files

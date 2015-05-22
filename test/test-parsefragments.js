@@ -209,7 +209,7 @@ function run(name, t, opts){
     var actual = parseFragments(t.in, opts);
     actual.forEach(function(fragment) { parseHeaders(fragment); });
 
-console.log(actual);
+// console.log(actual);
     assert.deepEqual(actual, t.out);
     assert(rebuild(t.out) === t.in, 'source string cannot be rebuilt from fragments');
   });

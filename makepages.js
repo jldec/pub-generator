@@ -65,10 +65,10 @@ module.exports = function makepages(fragments, opts) {
   // add _parent and _children[] and _prev and _next in page order
   // orphans end up under parent = '/'
   u.each(pages, function(page) {
-    var pHref = u.parentHref(page._href);
+    var pHref = u.parentHref(page._href, opts.noTrailingSlash);
     var parent = page$[pHref];
     while (pHref && !parent) {
-      pHref = u.parentHref(pHref)
+      pHref = u.parentHref(pHref, opts.noTrailingSlash)
       parent = page$[pHref]
     }
     if (parent) {

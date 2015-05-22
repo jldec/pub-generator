@@ -205,15 +205,15 @@ module.exports = function helpers(generator) {
     return u.map(generator.templatePages$[tname], frame.fn).join('');
   });
 
-  hb.registerHelper('eachInList', function(ref, frame) {
+  hb.registerHelper('eachLinkIn', function(ref, frame) {
     var fragment = resolve(ref, this);
-    return u.map(generator.parseList(fragment), frame.fn).join('');
+    return u.map(generator.parseLinks(fragment), frame.fn).join('');
   });
 
   // resolve references to fragments directly or via href string
   function resolve(ref, context) {
     if (typeof ref !== 'string') return ref;
-    if (/^#/.test(ref)) { ref = (context.page || '/') + ref; }
+    if (/^#/.test(ref)) { ref = (context._href || '/') + ref; }
     return generator.fragment$[ref];
   }
 
@@ -221,7 +221,7 @@ module.exports = function helpers(generator) {
   // works like resolve with a wildcard
   // careful using this without #
   function selectFragments(refpat, context) {
-    if (/^#/.test(refpat)) { refpat = (context.page || '/') + refpat; }
+    if (/^#/.test(refpat)) { refpat = (context._href || '/') + refpat; }
     var re = new RegExp(u.escapeRegExp(refpat));
     return u.filter(generator.fragments, function(fragment) { return re.test(fragment._href); });
   }

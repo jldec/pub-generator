@@ -57,18 +57,21 @@ module.exports = function parseFiles(source, opts) {
       fragment._file = file;
       parseHeaders(fragment, source);
 
-      // hack for md-headings - treat entire header text as name - no label parsing
-      var lbl = source.fragmentDelim === 'md-headings' ?
-        { _name:file._name, name:fragment._lbl } :
+      var lbl = source.fragmentDelim !== 'md-headings' ?
         // .page and .fragment headers also treated as labels for now
-        parseLabel(fragment._lbl || fragment.page || fragment.fragment, source.slugify);
+        parseLabel(fragment._lbl || fragment.page || fragment.fragment, source.slugify) :
+        // hack for md-headings - treat entire header text as name - no label parsing
+        { _name:file._name, name:fragment._lbl };
 
       delete fragment._lbl;
 
-      // first fragment takes path/name/ext from file
+      // first fragment can inherit path/name/ext from file
       // TODO: extend this to support (draft) files etc.
       if (idx === 0) {
-        if (!lbl._name && !lbl._path && fileLbl._name) { lbl._name = fileLbl._name; }
+        if (!lbl._name && !lbl._path) {
+          if (fileLbl._name) { lbl._name = fileLbl._name; }
+          if (fileLbl.name && !lbl.name) { lbl.name = fileLbl.name; }
+        }
         lbl._path = lbl._path || fileLbl._path;
         lbl._ext  = lbl._ext  || fileLbl._ext;
       }

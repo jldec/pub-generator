@@ -41,6 +41,7 @@ var u = require('pub-util');
 module.exports = function parseLabel(label, opts) {
 
   var opts = opts || {}; // passed through to u.slugify
+  var indexFile = 'indexFile' in opts ? opts.indexFile : 'index';
 
   var labelGrammar =
     /^(\/|[^#\(][^#]*?\/)?([^#\/\(\.][^#\/]*?)?(#.*?)?(\.[^\.]+)?(?:\s*\(([^\(\)]*)\))?$/;  // omg!
@@ -52,9 +53,14 @@ module.exports = function parseLabel(label, opts) {
   if (m[1]) { lbl._path = slugifyPath(m[1], opts); }
 
   if (m[2]) {
-    var rawname = noPrefix(squash(m[2], 'index'));
-    lbl._name = u.slugify(rawname, opts);
-    if (lbl._name !== rawname) { lbl.name = u.trim(rawname); } // remember original
+    var rawname = noPrefix(m[2]);
+    if (m[1] && rawname === indexFile) {
+      lbl.name = u.trim(m[1].replace(/^.*\/([^\/]+)\/$/, '$1')); // use parent dir for index
+    }
+    else {
+      lbl._name = u.slugify(rawname, opts);
+      if (lbl._name !== rawname) { lbl.name = u.trim(rawname); } // remember original
+    }
   }
 
   if (m[3]) {
@@ -89,12 +95,9 @@ function slugifyPath(s, opts) {
   return u.map(a, function(segment) { return u.slugify(noPrefix(segment), opts); }).join('/');
 };
 
-// remove numeric file-sort prefix
+// remove numeric file-sort prefix only if there is something after it
 function noPrefix(s) {
-  return s.replace(/^[0-9-]+ +/,'');
+  return s.replace(/^[0-9-]+ +([^ ])/,'$1');
 }
 
-function squash(s1, s2){
-  return (s1 === s2 ? '' : s1);
-}
 
