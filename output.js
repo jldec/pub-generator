@@ -9,7 +9,7 @@ var debug = require('debug')('pub:generator:output');
 var u = require('pub-util');
 var path = require('path');
 
-module.exports = function update(generator) {
+module.exports = function output(generator) {
 
   var opts = generator.opts;
   var log = opts.log;
