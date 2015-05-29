@@ -54,7 +54,7 @@ module.exports = function helpers(generator) {
   // used by html renderer, returns value for relPath or nothing
   // uses page._filePath if it exists (instead of _href) e.g for output to file
   function relPaths(frame) {
-    if (!opts.relPaths) return;
+    if (!opts.relPaths) return '';
     var page = frame && frame.data && frame.data.root;
     if (page) return u.relPath(page._filePath || page._href);
   }
@@ -67,7 +67,8 @@ module.exports = function helpers(generator) {
   // block-helper for all pages (todo - filter on patterns)
   hb.registerHelper('eachPage', function(frame) {
     var rg = u.filter(generator.pages, function(page) {
-      return !/^\/admin\/|^\/pub\/|^\/server\//.test(page._href);
+      return !page.nocrawl && !page.nopublish &&
+        !/^\/admin\/|^\/pub\/|^\/server\//.test(page._href);
     });
     var map = u.map(rg, function(page, index) {
       frame.data.index = index;
@@ -143,16 +144,6 @@ module.exports = function helpers(generator) {
     var metakeys = u.filter(u.keys(this), function(key) { return /^meta-/.test(key); });
     return u.map(u.pick(this, metakeys), function(val, key) {
       return frame.fn({ name:key.slice(5), content:val }); }).join('');
-  });
-
-  // sitemap block helper - only include reachable links
-  hb.registerHelper('sitemap', function(frame) {
-    var rg = u.filter(generator.page$, function(page, href) {
-      return !(/^http:|^https:|^\/\/|^\/admin\/|^\/pub\/|^\/server\//.test(href)
-              || page.nocrawl
-              || page.nopublish);
-    });
-    return u.map(rg, frame.fn).join('');
   });
 
   hb.registerHelper('fqurl', function(frame) {
@@ -247,7 +238,28 @@ module.exports = function helpers(generator) {
     return opts.relPaths ? u.relPath(this._filePath || this._href) : '';
   });
 
- // turn text with line breaks into escaped html with <br>
+  // inject CSS from themes and packages
+  hb.registerHelper('injectCss', function(frame) {
+    return u.map(opts.injectCss, function(css) {
+      return '<link rel="stylesheet" href="' + relPaths(frame) + css.path + '">';
+    }).join('\n');
+  });
+
+  // inject javascript from themes and packages
+  hb.registerHelper('injectJs', function(frame) {
+    return u.map(opts.injectJs, function(js) {
+      return '<script src="' + relPaths(frame) + js.path + '"></script>';
+    }).join('\n');
+  });
+
+  hb.registerHelper('copyrightComment', function(frame) {
+    if (this.copyright || opts.copyright) {
+      return '<!-- ' + u.escape(this.copyright || opts.copyright) + ' -->';
+    }
+  });
+
+
+  // turn text with line breaks into escaped html with <br>
   hb.registerHelper('hbr', u.hbreak);
 
   // minimal text-only diff renderer (for use inside hover or title tag)
@@ -304,6 +316,9 @@ module.exports = function helpers(generator) {
   // useful for simulating variadic helpers that call variadic functions like u.date()
   // assumes that the hash + data props are unique to hb frame objects
   function hbp(x) { return (x && x.hash && x.data) ? undefined : x; }
+
+  // expose to plugins
+  hb.hbp = hbp;
 
   //--//--//--//--//--//--//--//--//--//--//--//--//--//
   // the following helpers require generator state    //

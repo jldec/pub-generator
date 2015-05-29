@@ -11,7 +11,7 @@ var assert = require('assert');
 var deepdiff = require('deep-diff');
 
 var sources = [{ path:__dirname + '/md-old', fragmentDelim:true, leftDelim:'----', rightDelim:'', headerDelim:'----' }];
-var opts = require('pub-resolve-opts')( { sources:sources } );
+var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
 
 var getSources = require('../getsources');
 var serializeFiles = require('../serialize')().serializeFiles;

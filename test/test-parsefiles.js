@@ -11,7 +11,7 @@ var assert = require('assert');
 var deepdiff = require('deep-diff');
 
 var sources = [{ path:__dirname + '/md', fragmentDelim:true }];
-var opts = require('pub-resolve-opts')( { sources:sources } );
+var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
 
 var getSources = require('../getsources');
 var serializeFiles = require('../serialize')().serializeFiles;
@@ -168,7 +168,7 @@ test('md directory tree', function(done) {
   getSources(_sources, opts, function(err, actual) {
     if (err) return done(err);
 
-// console.log(u.inspect(actual, {depth:3}));
+    // console.log(u.inspect(actual, {depth:3}));
 
     assertNoDiff(actual, fragments, 'parsed');
 

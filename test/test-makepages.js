@@ -11,7 +11,7 @@ var deepdiff = require('deep-diff');
 
 var u = require('pub-util');
 var sources = [{ path:__dirname + '/md', fragmentDelim:true }];
-var opts = require('pub-resolve-opts')( { sources:sources } );
+var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
 var getSources = require('../getsources');
 var makepages = require('../makepages');
 

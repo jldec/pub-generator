@@ -55,7 +55,7 @@ tests.reverse().forEach(function run(tst) {
 
   test(tst.name, function(done) {
 
-    var opts = { sources: [ { path:'.', fragmentDelim:true, files:[tst.file] } ] };
+    var opts = { jquery:false, sources:[{ path:'.', fragmentDelim:true, files:[tst.file] }] };
 
     var generator = require('../generator')(opts);
     require('./custom-redirect')(generator);

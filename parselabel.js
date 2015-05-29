@@ -1,99 +1,93 @@
 /**
  * parselabel.js
- * parse the identifiers at the top of fragments or file path
+ * parse the identifiers at the top of fragments or a file pathname
  *
- * input format: path/name#fragname.ext (func ref user date "comment text")
- * e.g.  ==== Some Heading Text .md (draft) ====
+ * input format: path/name.ext#fragname (suffix)
  *
  * return:
  *      { _path      segments slugified
  *        _name      slugified
+ *        _ext       extension (control processing e.g. handlebars)
  *        _fragname  slugified (not available in file paths)
- *        _ext       extension (controls processing)
- *        func       tag for update, draft etc
- *        ref        href for update
- *        user       optional who dun it
- *        date       optional when
- *        cmnt }     optional why
+ *        func       first word in suffix
+ *        ref }      second token in suffix
  *
- * the / # . ( ) characters are treated as special
- * TODO: provide mechanism to escape - markdown uses \
+ * NOTE: fileNames never include #fragment or (suffix)
+ *       non-fileName path/name.ext are assumed NOT to have spaces or #
+ *       this keeps things nice and easy to understand :)
  *
- * - path ends with / and cannot start with # or ( and cannot contain #
- * - name cannot start with . or ( or / or # and cannot contain # or /
- * - fragname starts with the first # and may contain any characters
- *   fragname will cede to an extension or a suffix at the end of the label
- * - extension starts with . and may not contain .
- * - suffix starts with ( and ends with ) at the end of the label
- * e.g. (update / david@example.com 4-11-2001 "ran spellcheck on homepage")
- *
- * NOTE: path/name#fragname are slugified into ._path ._name and ._fragname
- *       so that text headings can be used as separators, and generate labels
- *
- * ALSO: since filenames may be labels, strip ordering prefix from path/name
+ * ALSO: for fileNames only, strip ordering prefix from path/name
  *       and swallow names which match the string 'index' exactly (lowercase)
  *
  * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
 **/
 
 var u = require('pub-util');
+var path = require('path');
 
-module.exports = function parseLabel(label, opts) {
+module.exports = function parseLabel(label, isFileName, slugifyOpts) {
 
-  var opts = opts || {}; // passed through to u.slugify
-  var indexFile = 'indexFile' in opts ? opts.indexFile : 'index';
+  label = u.trim(label);
 
-  var labelGrammar =
-    /^(\/|[^#\(][^#]*?\/)?([^#\/\(\.][^#\/]*?)?(#.*?)?(\.[^\.]+)?(?:\s*\(([^\(\)]*)\))?$/;  // omg!
+  var slugifyOpts = slugifyOpts || {}; // passed through to u.slugify
+  var indexFile = 'indexFile' in slugifyOpts ? slugifyOpts.indexFile : 'index';
 
-  var m = u.trim(label).match(labelGrammar) || {};
-
+  var m;
+  var suffix = '';
   var lbl = {};
 
-  if (m[1]) { lbl._path = slugifyPath(m[1], opts); }
+  if (!isFileName) {
 
-  if (m[2]) {
-    var rawname = noPrefix(m[2]);
-    if (m[1] && rawname === indexFile) {
-      lbl.name = u.trim(m[1].replace(/^.*\/([^\/]+)\/$/, '$1')); // use parent dir for index
+    // suffix is everything starting with the first '('
+    if ((m = label.indexOf('(')) >= 0) {
+      suffix = label.slice(m);
+      label = label.slice(0, m);
+    }
+
+    // fragment is everything before that starting with the first '#'
+    if ((m = label.indexOf('#')) >= 0) {
+      lbl._fragname = '#' + u.slugify(label.slice(m+1), slugifyOpts);;
+      label = label.slice(0, m);
+    }
+  }
+
+  var segments = label.replace(/[\/\\]+/g,'/').split('/');
+  var rawname = u.trim(segments.pop());
+
+  if (segments.length) {
+    var cleanSegments = u.map(segments, function(segment) {
+      return u.slugify(isFileName ? noPrefix(segment) : segment, slugifyOpts);
+    })
+    cleanSegments.push(''); // put back the one we popped off
+    lbl._path = cleanSegments.join('/');
+  }
+
+  var ext;
+  if (ext = path.extname(rawname)) {
+    lbl._ext = ext;
+    rawname = rawname.slice(0, -ext.length);
+  }
+
+  if (rawname) {
+    if (isFileName && segments.length && rawname === indexFile) {
+      lbl.name = u.trim(segments[segments.length - 1]) || '/'; // use parent dir for index
     }
     else {
-      lbl._name = u.slugify(rawname, opts);
+      rawname = isFileName ? noPrefix(rawname) : rawname;
+      lbl._name = u.slugify(rawname, slugifyOpts);
       if (lbl._name !== rawname) { lbl.name = u.trim(rawname); } // remember original
     }
   }
 
-  if (m[3]) {
-    lbl._fragname = '#' + u.slugify(m[3].slice(1), opts);
-    if (m[3] !== lbl._fragname) { lbl.fragname = u.trim(m[3]); } // remember original
-  }
-
-  if (m[4]) { lbl._ext = '.' + u.slugify(m[4].slice(1), opts); }
-
-  if (m[5]) {
-
-    var suffixGrammar =
-/^(\w+)?(?:\s+([^\s\"]+))?(?:\s+([^\s\"]+))?(?:\s+([^\s\"]+))?(?:\s*\"([^\"]*)\")?/;
-
-    var s = u.trim(m[5]).match(suffixGrammar) || {};
-
+  if (suffix) {
+    var suffixGrammar = /^(\w+)?(?:\s+([^\s\"]+))?/;
+    var s = u.trim(suffix.slice(1,-1)).match(suffixGrammar) || {};
     if (s[1]) { lbl.func  = s[1]; }
     if (s[2]) { lbl.ref   = s[2]; }
-    if (s[3]) { lbl.user  = s[3]; }
-    if (s[4]) { lbl.date  = s[4]; }
-    if (s[5]) { lbl.cmnt  = s[5]; }
   }
 
   return lbl;
 }
-
-
-// slugify all segments in a path with noPrefix
-function slugifyPath(s, opts) {
-  opts = opts || {};
-  var a = s.split('/');
-  return u.map(a, function(segment) { return u.slugify(noPrefix(segment), opts); }).join('/');
-};
 
 // remove numeric file-sort prefix only if there is something after it
 function noPrefix(s) {

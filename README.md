@@ -13,7 +13,7 @@ the server instantiates a single generator as follows:
 
 ```js
 // resolve config
-var opts = require('pub-resolve-opts')(opts, __dirname);
+var opts = require('pub-resolve-opts')(opts, path.join(__dirname, 'node_modules'));
 
 // instatiate generator
 var generator = require('pub-generator')(opts);

@@ -11,7 +11,7 @@ var assert = require('assert');
 var deepdiff = require('deep-diff');
 
 var sources = [{ path:__dirname + '/single-file-source.md', fragmentDelim:true }];
-var opts = require('pub-resolve-opts')( { sources:sources } );
+var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
 
 var getSources = require('../getsources');
 var serializeFiles = require('../serialize')().serializeFiles;
@@ -25,7 +25,7 @@ var fragments = [
   _file: file,
   _href: '/' },
 
-{ _hdr: '---- /people/ David Cook ----\nname: David\ntemplate: bio\nbirthday: 1-1-1989\nnote: this is a markdown fragment\n\n',
+{ _hdr: '---- /people/david-cook ----\nname: David\ntemplate: bio\nbirthday: 1-1-1989\nnote: this is a markdown fragment\n\n',
   _txt: '# David Cook\n- engineer\n\n',
   name: 'David Cook',
   _file: file,
@@ -56,7 +56,7 @@ var fragments = [
   note: 'this is an update for the previous unnamed markdown fragment',
   _href: '/people/david-cook#fragment-4',
   _update:
-  { _hdr: '---- .md ----\n\n',
+  { _hdr: '--------\n\n',
     _txt: '<h2>this is another unnamed markdown fragment</h2>\n\n',
     _file: file,
     _href: '/people/david-cook#fragment-4' }},
@@ -133,7 +133,7 @@ snapshots = [
   { _href: '',
     _hdr: '---- (snapshot /bar - 1/1/2011-14:33) ----\nname: Bar some time ago\n\n',
     _txt: 'text\n\n',
-    _lbl: { func:'snapshot', ref:'/bar', user:'-', date:'1/1/2011-14:33' },
+    _lbl: { func:'snapshot', ref:'/bar' },
     _file: file,
     name: 'Bar some time ago' }
 ];

@@ -35,7 +35,7 @@ module.exports = function parseFiles(source, opts) {
 
   u.each(source.files, function(file) {
 
-    var fileLbl = parseLabel(file.path, source.slugify);
+    var fileLbl = parseLabel(file.path, true, source.slugify);
     var prevFragment = {};
     var prevLabel = {};
 
@@ -59,8 +59,8 @@ module.exports = function parseFiles(source, opts) {
 
       var lbl = source.fragmentDelim !== 'md-headings' ?
         // .page and .fragment headers also treated as labels for now
-        parseLabel(fragment._lbl || fragment.page || fragment.fragment, source.slugify) :
-        // hack for md-headings - treat entire header text as name - no label parsing
+        parseLabel(fragment._lbl || fragment.page || fragment.fragment, false, source.slugify) :
+        // md-headings - treat entire header text as name - no label parsing
         { _name:file._name, name:fragment._lbl };
 
       delete fragment._lbl;
@@ -81,6 +81,7 @@ module.exports = function parseFiles(source, opts) {
       }
       else {
         // use unqualified name as #fragname
+        // files and pages always have path/name
         if (!lbl._path && lbl._name && !lbl._fragname) {
           lbl._fragname = '#' + lbl._name;
           lbl._name = '';
@@ -89,10 +90,12 @@ module.exports = function parseFiles(source, opts) {
         else if (!lbl._path && !lbl._name && !lbl._fragname) {
           lbl._fragname = '#fragment-' + idx;
         }
-        // inherit path/name/ext
-        if (!lbl._name && !lbl._path && prevLabel._name) { lbl._name = prevLabel._name; }
-        lbl._path = lbl._path || prevLabel._path
-        lbl._ext  = lbl._ext  || prevLabel._ext;
+        // only #fragments can inherit name, path and extension
+        if (lbl._fragname) {
+          if (!lbl._name && !lbl._path && prevLabel._name) { lbl._name = prevLabel._name; }
+          lbl._path = lbl._path || prevLabel._path
+          lbl._ext  = lbl._ext  || prevLabel._ext;
+        }
       }
 
       // default page type is markdown with no extension

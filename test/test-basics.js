@@ -199,7 +199,7 @@ tests.reverse().forEach(function run(tst) {
 
   test(tst.name, function(done) {
 
-    var opts = {
+    var opts = { jquery:0,
       sources: [ { path:'.', files:[tst.file], fragmentDelim:true } ] };
 
     var generator = require('../generator')(opts);

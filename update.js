@@ -168,7 +168,7 @@ module.exports = function update(generator) {
       var fl = lines[0];
 
       // sanity check - make sure this fragments does not have a (func) label already
-      var lbl = parseLabel(fl.slice(leftDelim.length, fl.length - rightDelim.length), source.slugify);
+      var lbl = parseLabel(fl.slice(leftDelim.length, fl.length - rightDelim.length), false, source.slugify);
       if (lbl.func) return false;
 
       lines[0] = fl.slice(0, fl.length - rightDelim.length) + ' (' + func + ') ' + rightDelim;

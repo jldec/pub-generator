@@ -63,8 +63,9 @@ module.exports = function makepages(fragments, opts) {
   }
 
   // add _parent and _children[] and _prev and _next in page order
-  // orphans end up under parent = '/'
+  // orphans end up under parent = '/', nocrawl pages are not included
   u.each(pages, function(page) {
+    if (page.nocrawl) return;
     var pHref = u.parentHref(page._href, opts.noTrailingSlash);
     var parent = page$[pHref];
     while (pHref && !parent) {

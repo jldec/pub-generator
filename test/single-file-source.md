@@ -3,7 +3,7 @@
 # home page
 - [david](/people/david-cook)
 
----- /people/ David Cook ----
+---- /people/david-cook ----
 name: David
 template: bio
 birthday: 1-1-1989
@@ -20,7 +20,7 @@ note: this is a markdown fragment
 
 ## this is an unnamed markdown fragment
 
----- .md ----
+--------
 
 <h2>this is another unnamed markdown fragment</h2>
 
