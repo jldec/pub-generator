@@ -56,19 +56,29 @@ module.exports = function render(generator) {
 
   // template renderer
   // handles missing template and template runtime errors
-  function renderTemplate(fragment, templateName) {
+  function renderTemplate(fragment, templateName, renderOpts) {
     if (templateName === 'notemplate') return fragment._txt;
     var t = generator.template$[templateName];
     if (!t) {
       log('Unknown template %s for %s, using default.', templateName, fragment._href);
       t = generator.template$.default;
     }
-    try { return t(fragment); }
+
+    // temporarily mutate fragment with _renderOpts
+    // TODO: replace side-effect with frame data
+    if (renderOpts) { fragment._renderOpts = renderOpts; }
+
+    var out;
+    try { out = t(fragment); }
     catch(err) {
-      var msg = u.format('Error rendering %s\n\ntemplate: %s\n', fragment._href, templateName, err.stack || err);
+      var msg = u.format('Error rendering %s\n\ntemplate: %s\n',
+                          fragment._href, templateName, err.stack || err);
       log(msg);
-      return '<pre>' + esc(msg) + '</pre>';
+      out = opts.production ? '' : '<pre>' + esc(msg) + '</pre>';
     }
+
+    if (renderOpts) { delete fragment._renderOpts; }
+    return out;
   }
 
 
@@ -76,8 +86,8 @@ module.exports = function render(generator) {
   // this is the primary function for static site/page generators and servers
   // also supports scenarios where there is no layout or no doc template
   // this function never wraps in marker divs
-  function renderDoc(page) {
-    return renderTemplate(page, docTemplate(page));
+  function renderDoc(page, renderOpts) {
+    return renderTemplate(page, docTemplate(page), renderOpts);
   }
 
   // render a layout using a layout template
@@ -167,8 +177,8 @@ module.exports = function render(generator) {
       target = ' target="_blank"';
     }
 
-    var imgPrefix = linkOpts.fqImages || linkOpts.relPaths;
-    var linkPrefix = linkOpts.fqLinks || linkOpts.relPaths;
+    var imgPrefix = linkOpts.fqImages || linkOpts.relPath;
+    var linkPrefix = linkOpts.fqLinks || linkOpts.relPath;
 
     // lookup page before munging href
     var page = generator.page$[href];

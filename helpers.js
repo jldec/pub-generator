@@ -29,35 +29,35 @@ module.exports = function helpers(generator) {
 
   // return html for the current page/fragment
   hb.registerHelper('html', function(frame) {
-    return generator.renderHtml(this, { relPaths:relPaths(frame) } );
+    return generator.renderHtml(this, renderOpts(frame));
   });
 
   // like 'html' without wrapping in an editor div (for menus)
   hb.registerHelper('html-noWrap', function(frame) {
-    return generator.renderHtml(this, { noWrap:true, relPaths:relPaths(frame) } );
+    return generator.renderHtml(this, renderOpts(frame, { noWrap:true }));
   });
 
   // like 'html-noedit' with fully qualified urls (for feeds)
   hb.registerHelper('html-fq', function(frame) {
-    return generator.renderHtml(this,
+    return generator.renderHtml(this, renderOpts(frame,
     { noWrap:true,
       fqLinks:opts.appUrl,
-      fqImages:(opts.fqImages || opts.appUrl),
-      relPaths:relPaths(frame) } );
+      fqImages:(opts.fqImages || opts.appUrl) }));
   });
 
   // return html for a referenced page or page-fragment
   hb.registerHelper('fragmentHtml', function(fragment, frame) {
-    return generator.renderHtml(resolve(fragment, this), { relPaths:relPaths(frame) } );
+    return generator.renderHtml(resolve(fragment, this), renderOpts(frame));
   });
 
-  // used by html renderer, returns value for relPath or nothing
-  // uses page._filePath if it exists (instead of _href) e.g for output to file
-  function relPaths(frame) {
-    if (!opts.relPaths) return '';
-    var page = frame && frame.data && frame.data.root;
-    if (page) return u.relPath(page._filePath || page._href);
+  // pull _renderOpts from page, and merge with optional input opts - see renderDoc()
+  function renderOpts(frame, opts) {
+    var renderOpts = frame.data.root && frame.data.root._renderOpts;
+    return u.merge(renderOpts || {}, opts)
   }
+
+  // expose to plugins
+  hb.renderOpts = renderOpts;
 
   // return html from applying another template
   hb.registerHelper('partial', function(template, frame) {
@@ -95,27 +95,27 @@ module.exports = function helpers(generator) {
 
   // return link html for this
   hb.registerHelper('pageLink', function(frame) {
-    return generator.renderLink( {href:this._href, relPaths:relPaths(frame) } );
+    return generator.renderLink(renderOpts(frame, { href:this._href }));
   });
 
   // return link href for this
   hb.registerHelper('pageHref', function(frame) {
-    return generator.renderLink( {href:this._href, hrefOnly:true, relPaths:relPaths(frame) } );
+    return generator.renderLink(renderOpts(frame, { href:this._href, hrefOnly:true }));
   });
 
   // return link html for a url/name
   hb.registerHelper('linkTo', function(url, name, frame) {
-    return generator.renderLink( {href:url, text:name, relPaths:relPaths(frame) } );
+    return generator.renderLink(renderOpts(frame, { href:url, text:name }));
   });
 
   // return link to next page
   hb.registerHelper('next', function(frame) {
-    return (this._next ? generator.renderLink( {href:this._next._href, relPaths:relPaths(frame) } ) : '');
+    return (this._next ? generator.renderLink(renderOpts(frame, { href:this._next._href })) : '');
   });
 
   // return link to previous page
   hb.registerHelper('prev', function(frame) {
-    return (this._prev ? generator.renderLink( {href:this._prev._href, relPaths:relPaths(frame) } ) : '');
+    return (this._prev ? generator.renderLink(renderOpts(frame, { href:this._prev._href })) : '');
   });
 
   // encode URI component
@@ -232,23 +232,29 @@ module.exports = function helpers(generator) {
     return u.slugify(this._href.slice(1));
   });
 
-  // if opts.relPaths, returns ../ for each level down, ./ for root level
-  // uses _filePath if it exists (instead of _href) e.g for output to file
-  hb.registerHelper('relPath', function() {
-    return opts.relPaths ? u.relPath(this._filePath || this._href) : '';
+  // return relPath for prefixing static links when generating output with relPaths:true
+  function relPath(frame) {
+    return renderOpts(frame).relPath || '';
+  }
+
+  // expose to plugins
+  hb.relPath = relPath;
+
+  hb.registerHelper('relPath', function(frame) {
+    return relPath(frame);
   });
 
   // inject CSS from themes and packages
   hb.registerHelper('injectCss', function(frame) {
     return u.map(opts.injectCss, function(css) {
-      return '<link rel="stylesheet" href="' + relPaths(frame) + css.path + '">';
+      return '<link rel="stylesheet" href="' + relPath(frame) + css.path + '">';
     }).join('\n');
   });
 
   // inject javascript from themes and packages
   hb.registerHelper('injectJs', function(frame) {
     return u.map(opts.injectJs, function(js) {
-      return '<script src="' + relPaths(frame) + js.path + '"></script>';
+      return '<script src="' + relPath(frame) + js.path + '"></script>';
     }).join('\n');
   });
 

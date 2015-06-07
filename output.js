@@ -78,11 +78,10 @@ module.exports = function output(generator) {
     fixOutputPaths(output, files);
 
     // pass3: generate using (possibly modified) file paths for relPaths
-    // TODO: find a better way to parameterize renderer - don't contaminate pages
     u.each(files, function(file) {
-      if (opts.relPaths) { file.page._filePath = file.path; }
-      file.text = generator.renderDoc(file.page);
-      delete file.page._filePath
+      var renderOpts = output.relPaths ?
+        { relPath:u.relPath(file.path) } : null;
+      file.text = generator.renderDoc(file.page, renderOpts);
       delete file.page;
     });
 

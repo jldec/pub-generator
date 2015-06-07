@@ -190,6 +190,27 @@ var tests =
   result: '<div data-render-html="/name-with-spaces"><p>hello world</p>\n</div>'
 },
 
+{ name: 'basic link',
+  page: '/link',
+  file: {
+    path: '/link.md',
+    text: '[hello](/world)'
+  },
+  result: '<div data-render-html="/link"><p><a href="/world">hello</a></p>\n</div>'
+},
+
+{ name: 'local and absolute link with relPath',
+  page: '/link',
+  file: {
+    path: '/link.md',
+    text: '[hello](/world)\n' +
+          '[hello2](http://www.google.com/)'
+  },
+  renderOpts: { relPath:u.relPath('/link') },
+  result: '<div data-render-html="/link"><p><a href="./world">hello</a>\n' +
+          '<a href="http://www.google.com/">hello2</a></p>\n</div>'
+}
+
 ];
 
 
@@ -217,7 +238,7 @@ tests.reverse().forEach(function run(tst) {
         (typeof page).should.be.exactly(tst.pagetype || 'object');
         if (tst.pagetype !== 'undefined') {
 
-          var actual = generator.renderDoc(page);
+          var actual = generator.renderDoc(page, tst.renderOpts);
           actual.should.be.exactly(tst.result);
         }
 
@@ -235,7 +256,7 @@ tests.reverse().forEach(function run(tst) {
             (typeof page).should.be.exactly(tst.pagetype || 'object');
             if (tst.pagetype !== 'undefined') {
 
-              var actual = generator.renderDoc(page);
+              var actual = generator.renderDoc(page, tst.renderOpts);
               actual.should.be.exactly(tst.result);
             }
             done();

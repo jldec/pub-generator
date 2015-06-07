@@ -19,6 +19,8 @@ module.exports = function getSourceFiles(source, cb) {
     });
   }
 
+  if (!source.src) return cb(new Error('No src for ' + source.name));
+
   source.src.get( { fromSource:fromSource }, function(err, files) {
     if (err) return cb(err);
     source.files = files;

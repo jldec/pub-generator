@@ -30,6 +30,10 @@ var u = require('pub-util');
 module.exports = function parseFragments(srctext, opts) {
   var leftDelim, rightDelim, headerDelim, delimiterGrammar, noHeaders;
 
+  if (!('fragmentDelim' in opts) && (srctext.slice(0,5) === '---- ')) {
+    opts.fragmentDelim = true;
+  }
+
   // experimental - TODO, fix fenced blocks
   if (opts.fragmentDelim === 'md-headings') {
     delimiterGrammar = /^#{1,6}(.*?)#*$/m;

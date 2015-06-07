@@ -25,7 +25,7 @@ module.exports = function getSources(sources, opts, cb) {
 
    // try to get source files and report - don't bubble - errors
     getsourcefiles(source, function(err) {
-      if (err) { log('Cannot load %s %s', source.name, err.stack || err.message); }
+      if (err) { log('ERROR: cannot load %s. %s', source.name, err.message); }
 
       if (source.type === 'FILE') {
         parsefiles(source, opts);
