@@ -51,7 +51,7 @@ module.exports = function output(generator) {
   // outputOutput()
   // unthrottled single output output.
   // converts pages which are also directories into dir/index.html files
-  // render dir/index.html files with one-level-deeper relPaths (if opts.relPaths)
+  // render dir/index.html files with one-level-deeper relPaths (if output.relPaths)
   //
   // TODO
   // - smarter diffing, incremental output

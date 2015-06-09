@@ -80,17 +80,13 @@ module.exports = function helpers(generator) {
   // block-helper for fragments matching pattern
   // fragment pattern should start with #... or /page#...
   hb.registerHelper('eachFragment', function(pattern, frame) {
+    pattern = hbp(pattern); frame = pattern ? frame : pattern;
     var rg = selectFragments(pattern, this);
     var map = u.map(rg, function(fragment, index) {
       frame.data.index = index;
       return frame.fn(fragment, frame);
     });
     return map.join('');
-  });
-
-  // return the name of the layout template for this page
-  hb.registerHelper('layoutTemplate', function(frame) {
-    return generator.layoutTemplate(this);
   });
 
   // return link html for this
@@ -212,6 +208,7 @@ module.exports = function helpers(generator) {
   // works like resolve with a wildcard
   // careful using this without #
   function selectFragments(refpat, context) {
+    refpat = refpat || '#';
     if (/^#/.test(refpat)) { refpat = (context._href || '/') + refpat; }
     var re = new RegExp(u.escapeRegExp(refpat));
     return u.filter(generator.fragments, function(fragment) { return re.test(fragment._href); });
@@ -226,19 +223,10 @@ module.exports = function helpers(generator) {
     return (h.fragment && h.fragment.slice(1)) || '';
   });
 
-  // slugify _href e.g. for css
-  // omits leading slash, returns '' for /
-  hb.registerHelper('href-slug', function() {
-    return u.slugify(this._href.slice(1));
-  });
-
   // return relPath for prefixing static links when generating output with relPaths:true
   function relPath(frame) {
     return renderOpts(frame).relPath || '';
   }
-
-  // expose to plugins
-  hb.relPath = relPath;
 
   hb.registerHelper('relPath', function(frame) {
     return relPath(frame);
@@ -259,11 +247,10 @@ module.exports = function helpers(generator) {
   });
 
   hb.registerHelper('copyrightComment', function(frame) {
-    if (this.copyright || opts.copyright) {
-      return '<!-- ' + u.escape(this.copyright || opts.copyright) + ' -->';
+    if (opts.copyright) {
+      return '<!-- ' + u.escape(opts.copyright).replace(/--+/g, '-') + ' -->';
     }
   });
-
 
   // turn text with line breaks into escaped html with <br>
   hb.registerHelper('hbr', u.hbreak);
@@ -293,6 +280,38 @@ module.exports = function helpers(generator) {
     this.diffpage = page || this.file;
     return this.difftext;
   });
+
+  // try user-provided fragment, then faMarkdown with font-awesome, then html
+  function defaultFragmentHtml(fragmentName, faMarkdown, html, frame) {
+
+    var f = generator.fragment$[fragmentName];
+    if (f) return fragmentHtml(f, frame);
+
+    if (faMarkdown && u.find(opts.pkgs, function(pkg) {
+      return ('pub-pkg-font-awesome' === pkg.pkgName);
+    })) {
+      return fragmentHtml( {_txt:faMarkdown,
+        _href:'/#synthetic' }, frame, {noWrap:1});
+    }
+
+    return html;
+  }
+
+  function fragmentHtml(fragment, frame, opts) {
+    return generator.renderHtml(fragment, hb.renderOpts(frame, opts));
+  }
+
+  function githubUrl(pkgJson) {
+    pkgJson = pkgJson || opts.pkgJson;
+    var url = pkgJson && pkgJson.repository && pkgJson.repository.url;
+    var match;
+    if (url && (match = url.match(/git:\/\/(github\.com.*)\.git$/i))) {
+      return 'https://' + match[1];
+    }
+  }
+
+  hb.defaultFragmentHtml = defaultFragmentHtml;
+  hb.githubUrl = githubUrl;
 
   //--//--//--//--//--//--//--//--//--//--//
   // the following helpers are variadic   //
