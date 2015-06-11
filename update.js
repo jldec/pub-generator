@@ -237,14 +237,14 @@ module.exports = function update(generator) {
 
     var source = opts.source$[filedata.source];
     if (!source) return cb(log(user, 'save unknown source', filedata.source));
-    if (!source.file$) { source.file$ = u.indexBy(source.files, 'path'); }
+    var file$ = u.indexBy(source.files, 'path'); // redo on every save to avoid conflicts
     var filesToSave = [];
 
     var results = u.map(filedata.files, function(clientFile) {
 
       debug('save by %s, %s %s bytes', user, clientFile.path, clientFile.text.length);
 
-      var serverFile = source.file$[clientFile.path];
+      var serverFile = file$[clientFile.path];
       if (!serverFile) return log(user, 'save unknown file', clientFile.path);
 
       var serverText = serverFile.text || generator.serializeTextFragments(serverFile);
