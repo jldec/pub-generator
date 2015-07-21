@@ -95,7 +95,7 @@ module.exports = function update(generator) {
     if (diff._hdr && !breakHold) {
       oldFragment._holdUpdates = true;
       oldFragment._holdText = newText;
-      notify('fragment header modified, autosave disabled, please save with ✓ when finished');
+      notify('fragment header modified, autosave postponed until next navigation');
       return 'hold';
     }
 
@@ -135,7 +135,7 @@ module.exports = function update(generator) {
 
     // trigger save to server (throttled)
     file._dirty = 1;
-    generator.clientSave();
+    if (!opts.staticHost) { generator.clientSave(); }
 
     // signal heavyweight edit - reload will notify views
     if (diff._hdr || newFragment.recompileOnChange) {
@@ -195,36 +195,65 @@ module.exports = function update(generator) {
       });
 
       if (dirtyFiles.length) {
-        var data =
-        { source: source.name,
-           files: u.map(dirtyFiles, generator.serializeFile) };
 
-        httpClient.put(data, function(err, savedFiles) {
+        var files = u.map(dirtyFiles, generator.serializeFile);
 
-          if (err || (u.size(savedFiles) !== u.size(dirtyFiles))) {
-            // must notify user on save errors
-            return notify('error saving files, please check your internet connection');
-          }
+        debug('clientSave %s files, %s...', files.length, files[0].text.slice(0,200));
 
-          u.each(dirtyFiles, function(file, idx) {
+        // static save from browser directly to source
+        if (opts.staticHost && source.staticSrc && source.src) {
 
-            var savedFile = savedFiles[idx];
+          // NOTE: subtle difference in data compared to httpClient.put()
+          source.src.put(files, function(err, savedFiles) {
 
-            if (typeof savedFile !== 'object') {
-              // most likely a collision - must notify user
-              return notify('error saving file: ' + savedFile);
+            if (err || (u.size(savedFiles) !== u.size(dirtyFiles))) {
+              // notify user on save errors
+              return notify('error saving files, please check your internet connection');
             }
 
-            // preserve for next update
-            file._oldtext = savedFile.text;
+            u.each(dirtyFiles, function(file, idx) {
 
-             // only mark as clean if unchanged while waiting for save
-            if (file._dirty === 2) { delete file._dirty; }
+              // no collision detection support with static saves (for now)
+              file._oldtext = file.text;
 
+               // only mark as clean if unchanged while waiting for save
+              if (file._dirty === 2) { delete file._dirty; }
+            });
+
+            return source.verbose && notify(u.size(savedFiles) + ' file(s) saved');
           });
+        }
 
-          return source.verbose && notify(u.size(savedFiles) + ' file(s) saved');
-        });
+        // normal (non-static) save from browser to pub-server
+        else {
+          httpClient.put({ source:source.name, files:files }, function(err, savedFiles) {
+
+            if (err || (u.size(savedFiles) !== u.size(dirtyFiles))) {
+              if (err) { log(err); }
+              // notify user on save errors
+              return notify('error saving files, please check your internet connection');
+            }
+
+            u.each(dirtyFiles, function(file, idx) {
+
+              var savedFile = savedFiles[idx];
+
+              if (typeof savedFile !== 'object') {
+                // most likely a collision - must notify user
+                return notify('error saving file: ' + savedFile);
+              }
+
+              // preserve for next update
+              file._oldtext = savedFile.text;
+
+               // only mark as clean if unchanged while waiting for save
+              if (file._dirty === 2) { delete file._dirty; }
+
+            });
+
+            return source.verbose && notify(u.size(savedFiles) + ' file(s) saved');
+          });
+        }
       }
     });
   }
@@ -323,37 +352,3 @@ module.exports = function update(generator) {
   }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

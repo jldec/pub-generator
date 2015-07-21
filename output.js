@@ -65,10 +65,13 @@ module.exports = function output(generator) {
 
     debug('output %s', output.name);
     var files = output.files = [];
+    var filterRe = new RegExp('^/(admin|server' +
+                              (opts.editor ? '' : '|pub') +
+                              ')(/|$)');
 
     // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function(page) {
-      if (/^\/(admin|pub|server)(\/|$)/.test(page._href)) return;
+      if (filterRe.test(page._href)) return;
       var file = { page: page, path: page._href }
       if (page['http-header']) { file['http-header'] = page['http-header']; }
       files.push(file);
@@ -123,33 +126,3 @@ module.exports = function output(generator) {
   }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

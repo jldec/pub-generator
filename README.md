@@ -70,8 +70,3 @@ $.getJSON('/pub/_opts.json')
   });
 });
 ```
-
-### generator API
-The `pub-generator` API will be documented as soon as all modules in pub-server reach v1.0, which should be in a few weeks.
-
-In the meantime, check out the code in `pub-server`, `pub-pkg-editor`, and `pub-generator`.
