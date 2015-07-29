@@ -46,7 +46,9 @@ module.exports = function makepages(fragments, opts) {
 
   function processPageFragment(fragment) {
     var href = u.parseHref(fragment._href);
-    if (nopage$[href.path]) return; // ignore fragments belonging to unpublished pages
+    // ignore fragments belonging to unpublished pages or .nopublish (legacy)
+    if (nopage$[href.path] ||
+       (opts.production && fragment.nopublish)) return;
     var page = page$[href.path];
     if (!page) return opts.log('WARNING: makepages - no matching page found for fragment %s', fragment._href);
     if (!page._fragments) { page._fragments = []; }
