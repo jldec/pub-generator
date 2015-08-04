@@ -214,6 +214,63 @@ module.exports = function helpers(generator) {
     return u.filter(generator.fragments, function(fragment) { return re.test(fragment._href); });
   }
 
+  // determine language string for a page
+  function pageLang(page) {
+    return page.lang ||
+      opts.lang ||
+      (opts.langDirs && !u.isRootLevel(page._href) && u.topLevel(page._href)) ||
+      'en';
+  }
+
+  // expose to plugins
+  hb.pageLang = pageLang;
+
+  function rtl(page) {
+    var code = pageLang(page).replace(/-.*/,'');
+    var rtlcodes = ['ar','arc','dv','ha','he','khw','ks','ku','ps','ur','yi'];
+    return page.rtl || u.contains(rtlcodes, code);
+  }
+
+  hb.registerHelper('lang', function(frame) {
+    return 'lang="' + pageLang(this) + '"';
+  });
+
+
+  hb.registerHelper('rtl', function(frame) {
+    return 'dir="' + (rtl(this) ? 'rtl' : 'auto') + '"';
+  });
+
+  hb.registerHelper('layout-class', function(frame) {
+    var list = [];
+    if (this['layout-class']) { list.push(this['layout-class']); }
+    list.push(this._href === '/' ? 'root' : u.slugify(this._href));
+    return 'class="' + list.join(' ') + '"';
+  });
+
+  function githubText(page) {
+    switch (pageLang(page)) {
+      case 'fr':    return 'Forkez-moi sur GitHub';
+      case 'he':    return 'צור פיצול בGitHub';
+      case 'id':    return 'Fork saya di Github';
+      case 'ko':    return 'Github에서 포크하기';
+      case 'pt-br': return 'Faça um fork no Github';
+      case 'pt-pt': return 'Faz fork no Github';
+      case 'tr':    return 'Github üstünde Fork edin';
+      case 'uk':    return 'скопіювати на Github';
+      default:      return 'Fork me on Github';
+    }
+  }
+
+  hb.registerHelper('githubBadge', function(frame) {
+    if (opts.github) {
+      return u.format(
+        '<p class="badge"><a href="%s">%s</a></p>',
+        opts.github,
+        this['github-text'] || githubText(this)
+      );
+    }
+  });
+
   // turn list into single string of values separated by commas
   hb.registerHelper('csv', u.csv);
 
@@ -227,6 +284,9 @@ module.exports = function helpers(generator) {
   function relPath(frame) {
     return renderOpts(frame).relPath || '';
   }
+
+  // expose to plugins
+  hb.relPath = relPath;
 
   hb.registerHelper('relPath', function(frame) {
     return relPath(frame);
@@ -247,12 +307,6 @@ module.exports = function helpers(generator) {
       u.map(opts.injectJs, function(js) {
       return '<script src="' + relPath(frame) + js.path + '"></script>';
     }).join('\n');
-  });
-
-  hb.registerHelper('copyrightComment', function(frame) {
-    if (opts.copyright) {
-      return '<!-- ' + u.escape(opts.copyright).replace(/--+/g, '-') + ' -->';
-    }
   });
 
   // turn text with line breaks into escaped html with <br>
@@ -338,6 +392,12 @@ module.exports = function helpers(generator) {
     text = hbp(text) || this.name || '';
     title = hbp(title);
     return generator.renderer.image(src, title, text);
+  });
+
+  // render option or page-property as an HTML comment
+  hb.registerHelper('comment', function(prop) {
+    prop = hbp(prop);
+    if (prop) return '<!-- ' + u.escape(this[prop] || opts[prop] || prop) + ' -->';
   });
 
   // helper helper to make undefined the frame arg passed to all helpers
