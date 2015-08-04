@@ -127,10 +127,10 @@ module.exports = function helpers(generator) {
 
   // return scripts tags for socket.io and pub-ux
   // TODO: configurable endpoint and more sensible logic for controlling production/static
-  hb.registerHelper('pub-ux', function() {
+  hb.registerHelper('pub-ux', function(frame) {
     if (!opts.production && opts.editor) {
-      return (opts['no-sockets'] ? '' : '<script src="/socket.io/socket.io.js"></script>\n') +
-             '<script src="/server/pub-ux.js"></script>';
+      return (opts['no-sockets'] ? '' : '<script src="' + relPath(frame) + '/socket.io/socket.io.js"></script>\n') +
+             '<script src="' + relPath(frame) + '/server/pub-ux.js"></script>';
     }
     return '';
   });
@@ -241,7 +241,10 @@ module.exports = function helpers(generator) {
 
   // inject javascript from themes and packages
   hb.registerHelper('injectJs', function(frame) {
-    return u.map(opts.injectJs, function(js) {
+    // inject this relPath always - not just when output.relPaths - see pub-ux
+    var rp = JSON.stringify(relPath(frame) || u.relPath(this._href));
+    return '<script>window.relPath = ' + rp + ';</script>\n' +
+      u.map(opts.injectJs, function(js) {
       return '<script src="' + relPath(frame) + js.path + '"></script>';
     }).join('\n');
   });
