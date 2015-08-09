@@ -4,10 +4,9 @@
  *
 **/
 
-suite('test-redirects');
+var test = require('tape')
 
 var u = require('pub-util');
-var assert = require('assert');
 
 var tests =
 [
@@ -53,7 +52,7 @@ var tests =
 
 tests.reverse().forEach(function run(tst) {
 
-  test(tst.name, function(done) {
+  test(tst.name, function(t) {
 
     var opts = { jquery:false, sources:[{ path:'.', fragmentDelim:true, files:[tst.file] }] };
 
@@ -61,15 +60,15 @@ tests.reverse().forEach(function run(tst) {
     require('./custom-redirect')(generator);
 
     generator.load(function(err) {
-      if (err) return done(err);
+      t.error(err);
 
       u.each(tst.pages, function(page) {
         var newUrl = generator.redirect(page);
-        assert.deepEqual(newUrl, { status:301, url:tst.redirectTo } );
-        assert(typeof generator.findPage(newUrl.url) === 'object');
+        t.deepEqual(newUrl, { status:301, url:tst.redirectTo } );
+        t.equal(typeof generator.findPage(newUrl.url), 'object');
       });
 
-      done();
+      t.end();
     });
   });
 

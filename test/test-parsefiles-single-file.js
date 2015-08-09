@@ -4,11 +4,10 @@
  *
 **/
 
-suite('test-parsefiles single-file');
+var test = require('tape')
+var deepDiff = require('deep-diff').diff;
 
 var u = require('pub-util');
-var assert = require('assert');
-var deepdiff = require('deep-diff');
 
 var sources = [{ path:__dirname + '/single-file-source.md', fragmentDelim:true }];
 var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
@@ -170,34 +169,32 @@ sources[0].drafts =  u.filter(fragments, function(f) { return f._draft; });
 sources[0].snapshots =  snapshots;
 
 
-test('single file', function(done) {
+test('single file', function(t) {
 
   // start from clone of sources without files
   var _sources = [u.omit(sources[0], 'files')];
 
   getSources(_sources, opts, function(err, actual) {
-    if (err) return done(err);
-
+    t.error(err);
     // console.log(u.inspect(actual, {depth:4}));
-    assertNoDiff(actual, fragments, 'parsed');
+    assertNoDiff(t, actual, fragments, 'parsed');
 
     _sources[0].files = serializeFiles(_sources[0].files); // replace memoized files
 
     getSources(_sources, opts, function(err, actual2) {
-      if (err) return done(err);
-      assertNoDiff(actual, actual2, 'serialized');
-      done();
+      t.error(err);
+      assertNoDiff(t, actual, actual2, 'serialized');
+      t.end();
     });
   });
 });
 
-function assertNoDiff(actual, expected, msg) {
-  var diff = deepdiff(actual, expected);
+function assertNoDiff(t, actual, expected, msg) {
+  var diff = deepDiff(actual, expected);
   var maxdiff = 5;
   if (diff) {
-    assert(false, 'deepDiff ' + msg + '\n'
+    t.assert(false, 'deepDiff ' + (msg || '') + '\n'
       + u.inspect(diff.slice(0,maxdiff), {depth:3})
       + (diff.length > maxdiff ? '\n...(truncated)' : ''));
   }
 }
-

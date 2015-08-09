@@ -6,12 +6,12 @@
  *
 */
 
-suite('test-parsefragments');
+var test = require('tape')
+var deepDiff = require('deep-diff').diff;
 
 var parseFragments = require('../parsefragments');
 var parseHeaders = require('../parseheaders');
 
-var assert = require('assert')
 var u = require('pub-util');
 
 var newstyle = [
@@ -203,15 +203,15 @@ newstyle.forEach(function(t) { run('newstyle', t, { fragmentDelim:true }); });
 oldstyle.forEach(function(t) { run('oldstyle', t, { fragmentDelim:true, leftDelim:'----', rightDelim:'', headerDelim:'----' } ); });
 mdstyle.forEach(function(t)  { run('mdstyle',  t, { fragmentDelim:'md-headings' } ); });
 
-function run(name, t, opts){
+function run(name, tst, opts){
   opts = opts || {};
-  test(name + ': ' + u.inspect(t.in) + ' → ' + u.inspect(t.out), function(){
-    var actual = parseFragments(t.in, opts);
+  test(name + ': ' + u.inspect(tst.in) /* + ' → ' + u.inspect(tst.out) */, function(t){
+    var actual = parseFragments(tst.in, opts);
     actual.forEach(function(fragment) { parseHeaders(fragment); });
-
-// console.log(actual);
-    assert.deepEqual(actual, t.out);
-    assert(rebuild(t.out) === t.in, 'source string cannot be rebuilt from fragments');
+    // console.log(actual);
+    t.deepEqual(actual, tst.out);
+    t.equal(rebuild(tst.out), tst.in, 'source string cannot be rebuilt from fragments');
+    t.end();
   });
 }
 
@@ -220,4 +220,3 @@ function rebuild(fragments) {
   fragments.forEach(function(fragment) { s += fragment._hdr + fragment._txt; });
   return s;
 }
-

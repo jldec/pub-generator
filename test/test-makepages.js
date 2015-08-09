@@ -4,10 +4,8 @@
  * uses deep-diff so that errors produce something useful
 **/
 
-suite('test-makepages');
-
-var assert = require('assert');
-var deepdiff = require('deep-diff');
+var test = require('tape')
+var deepDiff = require('deep-diff').diff;
 
 var u = require('pub-util');
 var sources = [{ path:__dirname + '/md', fragmentDelim:true }];
@@ -212,29 +210,27 @@ pages[6]._parent = pages[0];
 
 pages[7]._parent = pages[6];
 
-test("read md directory tree and make pages", function(done) {
+test("read md directory tree and make pages", function(t) {
 
-  this.timeout(10000);
+  t.timeoutAfter(10000);
 
   // start from clone of sources without files
   var _sources = [u.omit(sources[0], 'files')];
 
   getSources(_sources, opts, function(err, fragments) {
-    if (err) return done(err);
+    t.error(err);
     var actual = makepages(fragments);
-    assertNoDiff(actual, pages);
-    done();
+    assertNoDiff(t, actual, pages);
+    t.end();
   });
 });
 
-function assertNoDiff(actual, expected, msg) {
-  var diff = deepdiff(actual, expected);
+function assertNoDiff(t, actual, expected, msg) {
+  var diff = deepDiff(actual, expected);
   var maxdiff = 5;
   if (diff) {
-    assert(false, 'deepDiff ' + (msg || '') + '\n'
+    t.assert(false, 'deepDiff ' + (msg || '') + '\n'
       + u.inspect(diff.slice(0,maxdiff), {depth:3})
       + (diff.length > maxdiff ? '\n...(truncated)' : ''));
   }
 }
-
-

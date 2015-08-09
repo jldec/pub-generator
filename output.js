@@ -51,7 +51,6 @@ module.exports = function output(generator) {
   // outputOutput()
   // unthrottled single output output.
   // converts pages which are also directories into dir/index.html files
-  // render dir/index.html files with one-level-deeper relPaths (if output.relPaths)
   //
   // TODO
   // - smarter diffing, incremental output
@@ -81,9 +80,14 @@ module.exports = function output(generator) {
     fixOutputPaths(output, files);
 
     // pass3: generate using (possibly modified) file paths for relPaths
+    // E.g. /adobe may live in the file /adobe/index.html so the relPath is '..'
     u.each(files, function(file) {
-      var renderOpts = output.relPaths ?
-        { relPath:u.relPath(file.path) } : null;
+      var renderOpts =
+        output.relPaths   ? { relPath:u.relPath(file.path) } :
+        output.staticRoot ? { relPath:output.staticRoot } :
+        opts.relPaths     ? { relPath:u.relPath(file.path) } :
+        opts.staticRoot   ? { relPath:opts.staticRoot } :
+        null;
       file.text = generator.renderDoc(file.page, renderOpts);
       delete file.page;
     });

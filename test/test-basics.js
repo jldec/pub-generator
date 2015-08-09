@@ -5,10 +5,9 @@
  *
 **/
 
-suite('test-basics');
+var test = require('tape')
 
 var u = require('pub-util');
-var should = require('should');
 
 var tests =
 [
@@ -218,7 +217,7 @@ var tests =
 
 tests.reverse().forEach(function run(tst) {
 
-  test(tst.name, function(done) {
+  test(tst.name, function(t) {
 
     var opts = { jquery:0,
       sources: [ { path:'.', files:[tst.file], fragmentDelim:true } ] };
@@ -226,40 +225,38 @@ tests.reverse().forEach(function run(tst) {
     var generator = require('../generator')(opts);
 
     generator.load(function(err) {
-      if (err) return done(err);
-
-      generator.pages.length.should.be.exactly(1);
+      t.error(err);
+      t.equal(generator.pages.length, 1);
 
       generator.getPage(tst.page, function(err, page) {
-        if (err) return done(err);
+        t.error(err);
 
         // console.log(u.inspect(page, {depth:3}));
 
-        (typeof page).should.be.exactly(tst.pagetype || 'object');
+        t.equal(typeof page, tst.pagetype || 'object');
         if (tst.pagetype !== 'undefined') {
 
           var actual = generator.renderDoc(page, tst.renderOpts);
-          actual.should.be.exactly(tst.result);
+          t.equal(actual, tst.result);
         }
 
         // load again and retest to simulate reload
         generator.load(function(err) {
-          if (err) return done(err);
-
-          generator.pages.length.should.be.exactly(1);
+          t.error(err);
+          t.equal(generator.pages.length, 1);
 
           generator.getPage(tst.page, function(err, page) {
-            if (err) return done(err);
+            t.error(err);
 
             // console.log(u.inspect(page, {depth:3}));
 
-            (typeof page).should.be.exactly(tst.pagetype || 'object');
+            t.equal(typeof page, tst.pagetype || 'object');
             if (tst.pagetype !== 'undefined') {
 
               var actual = generator.renderDoc(page, tst.renderOpts);
-              actual.should.be.exactly(tst.result);
+              t.equal(actual, tst.result);
             }
-            done();
+            t.end();
           });
         });
       });

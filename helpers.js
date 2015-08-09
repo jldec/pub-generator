@@ -29,34 +29,39 @@ module.exports = function helpers(generator) {
 
   // return html for the current page/fragment
   hb.registerHelper('html', function(frame) {
-    return generator.renderHtml(this, renderOpts(frame));
+    return generator.renderHtml(this, renderOpts(frame, this));
   });
 
   // like 'html' without wrapping in an editor div (for menus)
   hb.registerHelper('html-noWrap', function(frame) {
-    return generator.renderHtml(this, renderOpts(frame, { noWrap:true }));
+    return generator.renderHtml(this, renderOpts(frame, this, { noWrap:true }));
   });
 
   // like 'html-noedit' with fully qualified urls (for feeds)
   hb.registerHelper('html-fq', function(frame) {
-    return generator.renderHtml(this, renderOpts(frame,
+    return generator.renderHtml(this, renderOpts(frame, this,
     { noWrap:true,
       fqLinks:opts.appUrl,
       fqImages:(opts.fqImages || opts.appUrl) }));
   });
 
   // return html for a referenced page or page-fragment
-  hb.registerHelper('fragmentHtml', function(fragment, frame) {
-    return generator.renderHtml(resolve(fragment, this), renderOpts(frame));
+  hb.registerHelper('fragmentHtml', function(ref, frame) {
+    var fragment = resolve(ref, this);
+    return generator.renderHtml(fragment, renderOpts(frame, fragment));
   });
 
-  // pull _renderOpts from page, and merge with optional input opts - see renderDoc()
-  function renderOpts(frame, opts) {
-    var renderOpts = frame.data.root && frame.data.root._renderOpts;
-    return u.merge(renderOpts || {}, opts)
+  // returns frame root (page) renderOpts merged with input renderOpts
+  function renderOpts(frame, fragment, rOpts) {
+    var rootRenderOpts = (frame.data.root && frame.data.root._renderOpts) ||
+      ( opts.relPaths     ? { relPath:u.relPath(fragment._href) } :
+        opts.staticRoot   ? { relPath:opts.staticRoot } :
+        {} );
+    return u.merge(rootRenderOpts, rOpts);
   }
 
-  // expose to plugins
+  // expose to plugin helpers
+  // e.g. required when calling generator.renderLink(renderOpts(frame, this))
   hb.renderOpts = renderOpts;
 
   // return html from applying another template
@@ -91,27 +96,27 @@ module.exports = function helpers(generator) {
 
   // return link html for this
   hb.registerHelper('pageLink', function(frame) {
-    return generator.renderLink(renderOpts(frame, { href:this._href }));
+    return generator.renderLink(renderOpts(frame, this, { href:this._href }));
   });
 
   // return link href for this
   hb.registerHelper('pageHref', function(frame) {
-    return generator.renderLink(renderOpts(frame, { href:this._href, hrefOnly:true }));
+    return generator.renderLink(renderOpts(frame, this, { href:this._href, hrefOnly:true }));
   });
 
   // return link html for a url/name
   hb.registerHelper('linkTo', function(url, name, frame) {
-    return generator.renderLink(renderOpts(frame, { href:url, text:name }));
+    return generator.renderLink(renderOpts(frame, this, { href:url, text:name }));
   });
 
   // return link to next page
   hb.registerHelper('next', function(frame) {
-    return (this._next ? generator.renderLink(renderOpts(frame, { href:this._next._href })) : '');
+    return (this._next ? generator.renderLink(renderOpts(frame, this, { href:this._next._href })) : '');
   });
 
   // return link to previous page
   hb.registerHelper('prev', function(frame) {
-    return (this._prev ? generator.renderLink(renderOpts(frame, { href:this._prev._href })) : '');
+    return (this._prev ? generator.renderLink(renderOpts(frame, this, { href:this._prev._href })) : '');
   });
 
   // encode URI component
@@ -280,32 +285,30 @@ module.exports = function helpers(generator) {
     return (h.fragment && h.fragment.slice(1)) || '';
   });
 
-  // return relPath for prefixing static links when generating output with relPaths:true
-  function relPath(frame) {
-    return renderOpts(frame).relPath || '';
+  function relPath(frame, fragment) {
+    return renderOpts(frame, fragment).relPath || '';
   }
 
   // expose to plugins
   hb.relPath = relPath;
 
   hb.registerHelper('relPath', function(frame) {
-    return relPath(frame);
+    return relPath(frame, this);
   });
 
   // inject CSS from themes and packages
   hb.registerHelper('injectCss', function(frame) {
     return u.map(opts.injectCss, function(css) {
-      return '<link rel="stylesheet" href="' + relPath(frame) + css.path + '">';
+      return '<link rel="stylesheet" href="' + relPath(frame, this) + css.path + '">';
     }).join('\n');
   });
 
   // inject javascript from themes and packages
   hb.registerHelper('injectJs', function(frame) {
-    // inject this relPath always - not just when output.relPaths - see pub-ux
-    var rp = JSON.stringify(relPath(frame) || u.relPath(this._href));
-    return '<script>window.relPath = ' + rp + ';</script>\n' +
+    var pubRef = JSON.stringify( { href:this._href, relPath:relPath(frame, this) } );
+    return '<script>window.pubRef = ' + pubRef + ';</script>\n' +
       u.map(opts.injectJs, function(js) {
-      return '<script src="' + relPath(frame) + js.path + '"></script>';
+      return '<script src="' + relPath(frame, this) + js.path + '"></script>';
     }).join('\n');
   });
 
@@ -355,7 +358,7 @@ module.exports = function helpers(generator) {
   }
 
   function fragmentHtml(fragment, frame, opts) {
-    return generator.renderHtml(fragment, hb.renderOpts(frame, opts));
+    return generator.renderHtml(fragment, renderOpts(frame, fragment, opts));
   }
 
   function githubUrl(pkgJson) {

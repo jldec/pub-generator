@@ -1,7 +1,22 @@
-/*
-TODO - comprehensive helper tests
+/**
+ * pub-generator test-helpers
+ * TODO: more
+ * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
+ *
+**/
+var test = require('tape')
 
-{{#eachLinkIn '/#header-menu'~}}
-<li>{{text}} at {{href}} with {{title}}</li>
-{{/eachLinkIn~}}
-*/
+var u = require('pub-util');
+
+var tests = [
+  {
+    name: 'dummy',
+  }
+];
+
+tests.reverse().forEach(function run(tst) {
+  test(tst.name, function(t) {
+    t.assert(true);
+    t.end();
+  });
+});

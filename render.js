@@ -25,12 +25,13 @@ module.exports = function render(generator) {
   require('marked-forms')(renderer);
   require('marked-images')(renderer);
 
-  function renderMarkdown(txt, opts) {
-    opts = u.extend( {
+  function renderMarkdown(txt, options) {
+    options = u.extend( {
       renderer:      generator.renderer,
-      fqImages:      generator.opts.fqImages,
-      linkNewWindow: generator.opts.linkNewWindow }, opts);
-    return marked(txt, opts);
+      fqImages:      opts.fqImages || opts.staticRoot,
+      fqLinks:       opts.staticRoot,
+      linkNewWindow: opts.linkNewWindow }, options);
+    return marked(txt, options);
   }
 
   generator.renderMarkdown  = renderMarkdown;  // low level markdown renderer
@@ -65,6 +66,7 @@ module.exports = function render(generator) {
     }
 
     // temporarily mutate fragment with _renderOpts
+    // UGLY CODE WARNING: depends on renderOpts only being passed from renderDoc
     // TODO: replace side-effect with frame data
     if (renderOpts) { fragment._renderOpts = renderOpts; }
 
@@ -82,10 +84,9 @@ module.exports = function render(generator) {
   }
 
 
-  // render a complete page document
+  // render a complete page document, default to using page-relative relPath
   // this is the primary function for static site/page generators and servers
   // also supports scenarios where there is no layout or no doc template
-  // this function never wraps in marker divs
   function renderDoc(page, renderOpts) {
     return renderTemplate(page, docTemplate(page), renderOpts);
   }
@@ -187,6 +188,8 @@ module.exports = function render(generator) {
     if (imgPrefix && /^\/images\//.test(href)) { href = imgPrefix + href; }
     else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
 
+    if (linkOpts.hrefOnly) return href;
+
     var name = text || (page && (page.name || page.title || (!page._hdr && page._file.path.slice(1)))) || href || '--';
     var onclick = (page && page.onclick) ? ' onclick="' + esc(page.onclick) + '"' : '';
 
@@ -270,6 +273,3 @@ module.exports = function render(generator) {
     generator.renderer.image = baseRenderImage;
   }
 }
-
-
-
