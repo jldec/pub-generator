@@ -58,7 +58,7 @@ module.exports = function render(generator) {
   // template renderer
   // handles missing template and template runtime errors
   function renderTemplate(fragment, templateName, renderOpts) {
-    if (templateName === 'notemplate') return fragment._txt;
+    if (templateName === 'none') return fragment._txt;
     var t = generator.template$[templateName];
     if (!t) {
       log('Unknown template %s for %s, using default.', templateName, fragment._href);
@@ -115,7 +115,7 @@ module.exports = function render(generator) {
   // page.notemplate bypasses default templates and returns literal text
   function docTemplate(page) {
     return page.doclayout ||
-      (page.notemplate && 'notemplate') ||
+      (page.notemplate && 'none') ||
       (page.nolayout && page.template) ||
       (generator.template$['doc-layout'] && 'doc-layout') ||
       layoutTemplate(page);

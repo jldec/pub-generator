@@ -107,24 +107,30 @@ var fragments = [
 { _hdr: '---- /css/styles.css ----\n\n',
   _txt: '',
   _file: file,
+  notemplate:true,
+  nocrawl:true,
   _href: '/css/styles.css' },
 
 { _hdr: '---- /js/jquery.js ----\nsrc: http://...\n\n',
   _txt: '',
   _file: file,
   src: 'http://...',
+  notemplate:true,
+  nocrawl:true,
   _href: '/js/jquery.js' },
 
 { _hdr: '---- /sitemap.xml ----\ntemplate: sitemap\n\n',
   _txt: '',
   _file: file,
   template: 'sitemap',
+  nocrawl:true,
   _href: '/sitemap.xml' },
 
 { _hdr: '---- /robots.txt ----\ntemplate: robots\n\n',
   _txt: '',
   _file: file,
   template: 'robots',
+  nocrawl:true,
   _href: '/robots.txt' }
 ];
 

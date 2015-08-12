@@ -99,7 +99,7 @@ module.exports = function parseFiles(source, opts) {
       }
 
       // default page type is markdown with no extension
-      if (/^\.md$|^\.markdown$/.test(lbl._ext)) {
+      if (/^\.(md|mdown|mdwn|mkd|mkdn|mkdown|markdown)$/i.test(lbl._ext) || !lbl._ext) {
         delete lbl._ext;
       }
       // templates and other compiled fragments don't turn into pages
@@ -107,6 +107,15 @@ module.exports = function parseFiles(source, opts) {
           source.compile === 'handlebars') {
         lbl._ext = '.hbs';
         fragment._compile = 'handlebars';
+      }
+      else {
+        // everything else defaults to literal text
+        if (!fragment.template && !fragment.layout) {
+          fragment.notemplate = true;
+        }
+        if (! /^\.(htm|html)$/i.test(lbl._ext)) {
+          fragment.nocrawl = true;
+        }
       }
 
       // record ._href
@@ -161,5 +170,3 @@ module.exports = function parseFiles(source, opts) {
   return source
 
 }
-
-
