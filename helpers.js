@@ -276,6 +276,22 @@ module.exports = function helpers(generator) {
     }
   });
 
+  hb.registerHelper('credit', function(frame) {
+    if (opts.credit || !('credit' in opts)) {
+      var credit = opts.credit ||
+        'powered by ' +
+        '[pub-server](http://jldec.github.io/pub-doc/)' +
+        (opts.theme ? ' and [' + opts.theme.pkgName + '](' +
+          hb.githubUrl(opts.theme.pkgJson) + ')' : '');
+
+      return hb.defaultFragmentHtml(
+        '/#credit',
+        '_!heart_ ' + credit,
+        credit,
+        frame)
+    }
+  });
+
   // turn list into single string of values separated by commas
   hb.registerHelper('csv', u.csv);
 
@@ -295,6 +311,17 @@ module.exports = function helpers(generator) {
   hb.registerHelper('relPath', function(frame) {
     return relPath(frame, this);
   });
+
+  // logic for properly qualifying image src urls
+  function imageSrc(frame, fragment, src) {
+    var rOpts = renderOpts(frame, fragment);
+    var qualify = rOpts.fqImages || rOpts.relPath;
+    if (qualify && /^\/[^\/]/.test(src)) return qualify + src;
+    return src;
+  }
+
+  // expose to plugins
+  hb.imageSrc = imageSrc;
 
   // inject CSS from themes and packages
   hb.registerHelper('injectCss', function(frame) {
@@ -342,6 +369,7 @@ module.exports = function helpers(generator) {
   });
 
   // try user-provided fragment, then faMarkdown with font-awesome, then html
+  // treat 3rd parameter as markdown if it doesn't contain <
   function defaultFragmentHtml(fragmentName, faMarkdown, html, frame) {
 
     var f = generator.fragment$[fragmentName];
@@ -353,8 +381,8 @@ module.exports = function helpers(generator) {
       return fragmentHtml( {_txt:faMarkdown,
         _href:'/#synthetic' }, frame, {noWrap:1});
     }
-
-    return html;
+    return /</.test(html) ? html :
+      fragmentHtml( {_txt:html, _href:'/#synthetic' }, frame, {noWrap:1});
   }
 
   function fragmentHtml(fragment, frame, opts) {
@@ -362,12 +390,12 @@ module.exports = function helpers(generator) {
   }
 
   function githubUrl(pkgJson) {
-    pkgJson = pkgJson || opts.pkgJson;
-    var url = pkgJson && pkgJson.repository && pkgJson.repository.url;
-    var match;
-    if (url && (match = url.match(/git:\/\/(github\.com.*)\.git$/i))) {
-      return 'https://' + match[1];
-    }
+    pkgJson = pkgJson || opts.pkgJson || {};
+    var url =
+       typeof pkgJson.repository === 'string' ? pkgJson.repository :
+       typeof pkgJson.repository === 'object' ? (pkgJson.repository.url || '') :
+       '';
+    return url.replace(/^git:\/\//, 'https://').replace(/\.git$/,'');
   }
 
   hb.defaultFragmentHtml = defaultFragmentHtml;
