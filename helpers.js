@@ -94,6 +94,11 @@ module.exports = function helpers(generator) {
     return map.join('');
   });
 
+  // return frame.data.index mod n (works only inside eachPage or eachFragment)
+  hb.registerHelper('mod', function(n, frame) {
+    return frame.data.index % n || 0;
+  });
+
   // return link html for this
   hb.registerHelper('pageLink', function(frame) {
     return generator.renderLink(renderOpts(frame, this, { href:this._href }));
@@ -341,6 +346,17 @@ module.exports = function helpers(generator) {
 
   // turn text with line breaks into escaped html with <br>
   hb.registerHelper('hbr', u.hbreak);
+
+  // return JSON for value passed as parameter, handles undefined as '""'
+  hb.registerHelper('json', function(val, frame) {
+    return JSON.stringify(val) || '""';
+  });
+
+  // return value coerced to finite Number or 0
+  hb.registerHelper('number', function(val, frame) {
+    var v = Number(val);
+    return (v === v && v !== Infinity) ? v : 0;
+  });
 
   // minimal text-only diff renderer (for use inside hover or title tag)
   // not accurate - TODO fragment-level diffing
