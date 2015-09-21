@@ -12,7 +12,11 @@ var u = require('pub-util');
 var sources = [{ path:__dirname + '/md-old', fragmentDelim:true, leftDelim:'----', rightDelim:'', headerDelim:'----' }];
 var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
 
-var getSources = require('../getsources');
+var generator = {};
+require('../parsefiles')(generator);
+require('../getsources')(generator);
+var getSources = generator.getSources;
+
 var serializeFiles = require('../serialize')().serializeFiles;
 
 var files = [

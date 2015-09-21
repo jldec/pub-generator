@@ -12,7 +12,11 @@ var u = require('pub-util');
 var sources = [{ path:__dirname + '/single-file-source.md', fragmentDelim:true }];
 var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
 
-var getSources = require('../getsources');
+var generator = {};
+require('../parsefiles')(generator);
+require('../getsources')(generator);
+var getSources = generator.getSources;
+
 var serializeFiles = require('../serialize')().serializeFiles;
 
 var file = { path: '/single-file-source.md'  };

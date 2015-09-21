@@ -1,5 +1,6 @@
 /**
  * pub-generator getsources.js
+ * pub-generator mixin
  * returns aggregated fragments across sources after applying updates
  *
  * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
@@ -9,76 +10,90 @@ var u = require('pub-util');
 
 var asyncbuilder = require('asyncbuilder');
 var getsourcefiles = require('./getsourcefiles');
-var parsefiles = require('./parsefiles');
 var Fragment = require('./fragment');
 
-module.exports = function getSources(sources, opts, cb) {
+module.exports = function getsources(generator) {
+  generator = generator || {};
+  generator.getSources = getSources;
+  return generator;
 
-  opts = opts || {};
-  var log = opts.log || console.log;
+  //--//--//--//--//--//--//--//--//--//--//--//--//--//--//--//
 
-  var ab = new asyncbuilder(processFiles);
+  function getSources(sources, opts, cb) {
 
-  u.each(sources, function(source) {
+    opts = opts || {};
+    var log = opts.log || console.log;
 
-    var append = ab.asyncAppend();
+    var ab = new asyncbuilder(processFiles);
 
-   // try to get source files and report - don't bubble - errors
-    getsourcefiles(source, function(err) {
-      if (err) { log('ERROR: cannot load %s. %s', source.name, err.message); }
+    u.each(sources, function(source) {
 
-      if (source.type === 'FILE') {
-        parsefiles(source, opts);
-      }
+      var append = ab.asyncAppend();
 
-      append(null, source)
-    });
-  });
+     // try to get source files and report - don't bubble - errors
+      getsourcefiles(source, function(err) {
+        if (err) { log('ERROR: cannot load %s. %s', source.name, err.message); }
 
-  ab.complete();
-
-
-  function processFiles(err) {
-    if (err) return cb(err);
-
-    var fragments = collect('fragments');
-
-    if (!opts.production) {
-
-      // apply updates by replacing "target" fragments
-      var fragment$ = u.indexBy(fragments, '_href');
-      u.each(collect('updates'), function(update) {
-
-        var target = update._lbl.ref;
-        delete update._lbl;
-
-        if ( !(target instanceof Fragment) ) {
-          target = fragment$[target];
-        }
-        if (target) {
-
-          update._update = target;
-
-          // inherit from target
-          update._href = update._href || target._href;
-
-          var i = u.indexOf(fragments, target);
-          if (i >= 0) {
-            fragments[i] = update;
-            return;
+        if (source.type === 'FILE') {
+          // invoke pluggable file parser - generator.parseFilesXXX
+          var parseFiles = generator['parseFiles' + (source.format || 'PUB')];
+          if (!parseFiles) {
+            log('WARNING: unknown file format for source $s: %s', source.name, source.format);
+          }
+          else {
+            parseFiles(source, opts);
           }
         }
-        log('cannot find target of update', update._hdr,
-          'from', update._file.path);
+
+        append(null, source)
       });
-    }
+    });
 
-    cb(null, fragments);
+    ab.complete();
 
-    function collect(key) {
-      return u.compact(u.flatten(u.pluck(sources, key), true));
+
+    function processFiles(err) {
+      if (err) return cb(err);
+
+      var fragments = collect('fragments');
+
+      if (!opts.production) {
+
+        // apply updates by replacing "target" fragments
+        var fragment$ = u.indexBy(fragments, '_href');
+        u.each(collect('updates'), function(update) {
+
+          var target = update._lbl.ref;
+          delete update._lbl;
+
+          if ( !(target instanceof Fragment) ) {
+            target = fragment$[target];
+          }
+          if (target) {
+
+            update._update = target;
+
+            // inherit from target
+            update._href = update._href || target._href;
+
+            var i = u.indexOf(fragments, target);
+            if (i >= 0) {
+              fragments[i] = update;
+              return;
+            }
+          }
+          log('cannot find target of update', update._hdr,
+            'from', update._file.path);
+        });
+      }
+
+      cb(null, fragments);
+
+      function collect(key) {
+        return u.compact(u.flatten(u.pluck(sources, key), true));
+      }
+
     }
 
   }
-
 }

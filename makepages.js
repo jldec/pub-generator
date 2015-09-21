@@ -64,13 +64,26 @@ module.exports = function makepages(fragments, opts) {
     pages.push(page);
   }
 
-  // add _parent and _children[] and _prev and _next in page order
-  // orphans end up under parent = '/', nocrawl pages are not included
-  u.each(pages, function(page) {
-    if (page.nocrawl) return;
+  // page tree only includes crawlable pages
+  // add _parent and _children[] and _prev and _next to pages in page order
+  // orphans go under / OR under synthetic folder pages if opts.folderPages
+
+  var treePages = u.reject(pages, function(page) {
+    return page.nocrawl || /^\/admin\/|^\/pub\/|^\/server\//.test(page._href);
+  });
+  var treePage$ = u.indexBy(treePages, '_href');
+
+  // NOTE: if opts.folderPages, treePages may be extended during loop
+  for (var i = 0; i < treePages.length; i++) {
+    var page = treePages[i];
     var pHref = u.parentHref(page._href, opts.noTrailingSlash);
-    var parent = page$[pHref];
-    while (pHref && !parent) {
+    var parent = pHref && treePage$[pHref];
+    if (pHref && !parent && opts.folderPages) {
+      parent = treePage$[pHref] = { _href:pHref, folderPage:true };
+      treePages.push(parent); // mutate!
+      // opts.log('WARNING: makepages - synthesized folder page %s for %s', pHref, page._href);
+    }
+    else while (pHref && !parent) {
       pHref = u.parentHref(pHref, opts.noTrailingSlash)
       parent = page$[pHref]
     }
@@ -84,7 +97,7 @@ module.exports = function makepages(fragments, opts) {
         prev._next = page;
       }
     }
-  });
+  };
 
   return pages;
 }

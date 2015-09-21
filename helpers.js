@@ -27,9 +27,12 @@ module.exports = function helpers(generator) {
     return generator.renderPage(this);
   });
 
-  // return html for the current page/fragment
-  hb.registerHelper('html', function(frame) {
-    return generator.renderHtml(this, renderOpts(frame, this));
+  // return html for the current page/fragment or markdown in txt
+  hb.registerHelper('html', function(txt, frame) {
+    var text = hbp(txt);
+    frame = text ? frame : txt;
+    var fragment = text ? { _txt:text, _href:'/#synthetic' } : this;
+    return generator.renderHtml(fragment, renderOpts(frame, fragment));
   });
 
   // like 'html' without wrapping in an editor div (for menus)
@@ -196,7 +199,13 @@ module.exports = function helpers(generator) {
     return match && match[1] || '';
   }
 
-  hb.registerHelper('pageTree', function(frame) { return generator.renderPageTree(); });
+  // returns nested ul-li structure for children of root - does not include root
+  hb.registerHelper('pageTree', function(root, frame) {
+    if (!hbp(root)) { frame = root; root = generator.home; }
+    if (root && root._children) {
+      return generator.renderPageTree(root._children, renderOpts(frame, this));
+    }
+  });
 
   hb.registerHelper('eachPageWithTemplate', function(tname, frame) {
     return u.map(generator.templatePages$[tname], frame.fn).join('');

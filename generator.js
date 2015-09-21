@@ -69,6 +69,8 @@ function Generator(opts) {
   // mixins
   require('./render')(generator);
   require('./helpers')(generator);
+  require('./parsefiles')(generator);
+  require('./getsources')(generator);
   require('./serialize')(generator);
   require('./update')(generator);
   require('./output')(generator);
@@ -78,7 +80,7 @@ function Generator(opts) {
   // generator.load() called repeatedly
   function load(cb) {
     var timer = u.timer();
-    require('./getsources')(opts.sources, opts, function(err, fragments) {
+    generator.getSources(opts.sources, opts, function(err, fragments) {
 
       if (err) return cb && cb(err);
 

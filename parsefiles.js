@@ -1,7 +1,7 @@
 /**
  * parsefiles.js
- * parses source.files for a single source
- * generates source.fragments, source.updates, source.drafts, and source.snapshots
+ * pub-generator mixin - parses source.files for a single PUB-format source
+ * populates source.fragments, source.updates, source.drafts, and source.snapshots
  * includes drafts in fragments if !production (updates processed separately)
  *
  * input:  source.files [{path, text},...] from readfiles
@@ -23,7 +23,13 @@ var parseLabel = require('./parselabel');
 
 var path = require('path');
 
-module.exports = function parseFiles(source, opts) {
+module.exports = function parsefiles(generator) {
+  generator = generator || {};
+  generator.parseFilesPUB = parseFilesPUB;
+  return generator;
+}
+
+function parseFilesPUB(source, opts) {
 
   opts = opts || {};
   opts.log = opts.log || console.log;

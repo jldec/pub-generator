@@ -190,49 +190,27 @@ module.exports = function render(generator) {
 
     if (linkOpts.hrefOnly) return href;
 
-    var name = text || (page && (page.name || page.title || (!page._hdr && page._file.path.slice(1)))) || href || '--';
+    var name = text || (page && (page.name || page.title || (!page._hdr && page._file.path.slice(1)))) || u.unslugify(href) || '--';
     var onclick = (page && page.onclick) ? ' onclick="' + esc(page.onclick) + '"' : '';
 
     return '<a href="' + (href || '#') + '"' + (title ? ' title="' + title + '"' : '') + target + onclick + '>' + name + '</a>';
   }
 
-
-  // recurse page._children starting at / and filtering out duplicates within each first level category
-  function renderPageTree(pagelist, id$, category) {
-    pagelist = pagelist || firstLevel();
-    id$ = id$ || {}; // for uniqueid()
+  // recursively build ul-li tree using page._children
+  // TODO: detect/avoid cycles
+  function renderPageTree(pagelist, linkOpts) {
     var out = '\n<ul>';
-    var pagecount = 0;
-    pagelist.forEach(function(page) {
-      pagecount++;
-      var uid = (category || pagecount) + '-' + (page._href || u.slugify(page.name));
-      if (!id$[uid]) {
-        id$[uid] = true;
-        out += '\n<li>'
-          + '<div id="list-' + uid + '"><a href="'+ (page._href || '#') + '">' + esc(page.name || page._href) + '</a></div>'
-          + (page._children ? renderPageTree(page._children, id$, (category || pagecount)) : '')
+    u.each(pagelist, function(page) {
+      var cls = page._children ? ' class="folder"' : '';
+      var id = ' id="page-tree' + page._href.replace(/\W/g, '-') + '"';
+      out += '\n<li' + id + cls + '>'
+          + (page.folderPage ?
+            '<span class="folderPage">' + (page.name || u.unslugify(page._href) || '--') + '</span>' :
+            renderLink(u.merge(linkOpts, { href:page._href, text:page.name, title:(page.title || page.name) })))
+          + (page._children ? renderPageTree(page._children, linkOpts) : '')
           + '</li>';
-      }
     });
     return out + '</ul>';
-  }
-
-  // group first level pages into 'Home', generator.pagegroups, 'Other Groups', and 'Other Pages'
-  function firstLevel() {
-    var rootlevel = u.filter(generator.pages, function(page){ return u.rootlevel(page._href) });
-    var tree = [{name:'Home', _href:'/'}];
-
-    u.each(generator.pagegroups, function(category) {
-      tree.push( {name:category.name, children:u.where(rootlevel, category.where)} );
-    });
-
-    var othergroups = u.difference(u.filter(rootlevel, function(page){ return !!page._children }), u.flatten(u.pluck(tree,'children'),true));
-    if (othergroups.length) { tree.push({ name:'Other Groups', children:othergroups }); } // other pages with children
-
-    var otherpages = u.difference(rootlevel, u.flatten(u.pluck(tree,'children'),true));
-    if (otherpages.length) { tree.push({ name:'Other Pages', children:otherpages }); } // other pages without children
-
-    return tree;
   }
 
   // parse links from fragment text as a side effect of rendering with marked
