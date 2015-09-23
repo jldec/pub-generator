@@ -199,12 +199,15 @@ module.exports = function helpers(generator) {
     return match && match[1] || '';
   }
 
-  // returns nested ul-li structure for children of root - does not include root
-  hb.registerHelper('pageTree', function(root, frame) {
-    if (!hbp(root)) { frame = root; root = generator.home; }
-    if (root && root._children) {
-      return generator.renderPageTree(root._children, renderOpts(frame, this));
-    }
+  // render nested ul-li structure for children of root, groupBy propname
+  // use defaultGroup name if groupBy prop is undefined
+  // groupBy and defaultGroup must either both be specified or no args passed
+  // note: result does not include root
+  hb.registerHelper('pageTree', function(groupBy, defaultGroup, frame) {
+    if (!hbp(groupBy)) { frame = groupBy; groupBy = defaultGroup = null; }
+
+    return generator.renderPageTree(generator.home,
+      renderOpts(frame, this, { groupBy:groupBy, defaultGroup:defaultGroup }));
   });
 
   hb.registerHelper('eachPageWithTemplate', function(tname, frame) {

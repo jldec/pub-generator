@@ -196,21 +196,40 @@ module.exports = function render(generator) {
     return '<a href="' + (href || '#') + '"' + (title ? ' title="' + title + '"' : '') + target + onclick + '>' + name + '</a>';
   }
 
-  // recursively build ul-li tree using page._children
+  // recursively build ul-li tree starting with root._children
+  // optionally groupBy top-level categories
   // TODO: detect/avoid cycles
-  function renderPageTree(pagelist, linkOpts) {
-    var out = '\n<ul>';
-    u.each(pagelist, function(page) {
-      var cls = page._children ? ' class="folder"' : '';
-      var id = ' id="page-tree' + page._href.replace(/\W/g, '-') + '"';
-      out += '\n<li' + id + cls + '>'
-          + (page.folderPage ?
-            '<span class="folderPage">' + (page.name || u.unslugify(page._href) || '--') + '</span>' :
-            renderLink(u.merge(linkOpts, { href:page._href, text:page.name, title:(page.title || page.name) })))
-          + (page._children ? renderPageTree(page._children, linkOpts) : '')
-          + '</li>';
-    });
-    return out + '</ul>';
+  function renderPageTree(root, renderOpts) {
+
+    if (renderOpts.groupBy) {
+      var folderPages =
+        u.map(u.groupBy(root._children, renderOpts.groupBy), function(children, name) {
+          if (name === 'undefined') { name = renderOpts.defaultGroup || 'Other'; }
+          return { folderPage: true,
+                   _href:      '/' + u.slugify(name) + '/',
+                   _children:  children,
+                   name:       name };
+        });
+      return recurse(folderPages);
+    }
+    else return recurse(root._children);
+
+    function recurse(children) {
+      var pid = renderOpts.pageTreeID || 'page-tree';
+      var out = '\n<ul id="' + pid + '">';
+
+      u.each(children, function(page) {
+        var cls = page._children ? ' class="folder"' : '';
+        var id = ' id="' + pid + page._href.replace(/\W/g, '-') + '"';
+        out += '\n<li' + id + cls + '>'
+            + (page.folderPage ?
+              '<span class="folderPage">' + (page.name || u.unslugify(page._href) || '--') + '</span>' :
+              renderLink(u.merge(renderOpts, { href:page._href, text:page.name, title:(page.title || page.name) })))
+            + (page._children ? recurse(page._children) : '')
+            + '</li>';
+      });
+      return out + '</ul>';
+    }
   }
 
   // parse links from fragment text as a side effect of rendering with marked
