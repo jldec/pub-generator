@@ -90,7 +90,7 @@ module.exports = function getsources(generator) {
       cb(null, fragments);
 
       function collect(key) {
-        return u.compact(u.flatten(u.pluck(sources, key), true));
+        return u.compact(u.flatten(u.pluck(sources, key)));
       }
 
     }
