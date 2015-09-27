@@ -34,6 +34,8 @@ module.exports = function render(generator) {
     return marked(txt, options);
   }
 
+  generator.renderDocState = null;  // hack to keep track of renderOpts while rendering
+
   generator.renderMarkdown  = renderMarkdown;  // low level markdown renderer
   generator.renderTemplate  = renderTemplate;  // low level template renderer (used by renderDoc/Layout/Page)
   generator.renderDoc       = renderDoc;       // render page for publishing using a doc template (usually includes renderLayout)
@@ -57,18 +59,13 @@ module.exports = function render(generator) {
 
   // template renderer
   // handles missing template and template runtime errors
-  function renderTemplate(fragment, templateName, renderOpts) {
+  function renderTemplate(fragment, templateName) {
     if (templateName === 'none') return fragment._txt;
     var t = generator.template$[templateName];
     if (!t) {
       log('Unknown template %s for %s, using default.', templateName, fragment._href);
       t = generator.template$.default;
     }
-
-    // temporarily mutate fragment with _renderOpts
-    // UGLY CODE WARNING: depends on renderOpts only being passed from renderDoc
-    // TODO: replace side-effect with frame data
-    if (renderOpts) { fragment._renderOpts = renderOpts; }
 
     var out;
     try { out = t(fragment); }
@@ -79,7 +76,6 @@ module.exports = function render(generator) {
       out = opts.production ? '' : '<pre>' + esc(msg) + '</pre>';
     }
 
-    if (renderOpts) { delete fragment._renderOpts; }
     return out;
   }
 
@@ -88,7 +84,11 @@ module.exports = function render(generator) {
   // this is the primary function for static site/page generators and servers
   // also supports scenarios where there is no layout or no doc template
   function renderDoc(page, renderOpts) {
-    return renderTemplate(page, docTemplate(page), renderOpts);
+    if (generator.renderDocState) return log(new Error('Recursive call to renderDoc'));
+    generator.renderDocState = { renderOpts:renderOpts };
+    var out = renderTemplate(page, docTemplate(page), renderOpts); // synchronous
+    generator.renderDocState = null;
+    return out;
   }
 
   // render a layout using a layout template

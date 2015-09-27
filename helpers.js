@@ -56,7 +56,7 @@ module.exports = function helpers(generator) {
 
   // returns frame root (page) renderOpts merged with input renderOpts
   function renderOpts(frame, fragment, rOpts) {
-    var rootRenderOpts = (frame.data.root && frame.data.root._renderOpts) ||
+    var rootRenderOpts = (generator.renderDocState && generator.renderDocState.renderOpts) ||
       ( opts.relPaths     ? { relPath:u.relPath(fragment._href) } :
         opts.staticRoot   ? { relPath:opts.staticRoot } :
         {} );
