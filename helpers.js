@@ -72,13 +72,9 @@ module.exports = function helpers(generator) {
     return generator.renderTemplate(this, template);
   });
 
-  // block-helper for all pages (todo - filter on patterns)
+  // block-helper for rendering all content pages e.g. to generate nav/toc
   hb.registerHelper('eachPage', function(frame) {
-    var rg = u.filter(generator.pages, function(page) {
-      return !page.nocrawl && !page.nopublish &&
-        !/^\/admin\/|^\/pub\/|^\/server\//.test(page._href);
-    });
-    var map = u.map(rg, function(page, index) {
+    var map = u.map(generator.contentPages, function(page, index) {
       frame.data.index = index;
       return frame.fn(page, frame);
     });

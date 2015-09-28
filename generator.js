@@ -42,6 +42,7 @@ function Generator(opts) {
     template$:         {},           // map compiled templates by name
     templatePages$:    {},           // group pages by template name
     sourcePages$:      {},           // group pages by source
+    contentPages:      [],           // all crawlable pages for nav, toc etc.
     home:              null,         // root page
     pagegroups:        [],           // categorization of root-level pages - useful for generic navigation
 
@@ -171,6 +172,9 @@ function Generator(opts) {
     generator.redirect$       =  indexPages('redirect');
     generator.templatePages$  =  u.groupBy(pgs, 'template');
     generator.sourcePage$     =  u.groupBy(pgs, function(page) { return page._file.source.name; });
+    generator.contentPages    =  u.filter(pgs, function(page) {
+      return !page.nocrawl && !page.nopublish && !/^\/admin\/|^\/pub\/|^\/server\//.test(page._href);
+    });
     generator.emit('pages-ready');
   }
 
