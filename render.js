@@ -30,7 +30,8 @@ module.exports = function render(generator) {
       renderer:      generator.renderer,
       fqImages:      opts.fqImages || opts.staticRoot,
       fqLinks:       opts.staticRoot,
-      linkNewWindow: opts.linkNewWindow }, options);
+      linkNewWindow: opts.linkNewWindow,
+      highlight:     opts.highlight }, options);
     return marked(txt, options);
   }
 
