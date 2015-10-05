@@ -222,21 +222,20 @@ module.exports = function render(generator) {
     }
     else return recurse(root._children);
 
-    function recurse(children) {
-      var pid = renderOpts.pageTreeID || 'page-tree';
-      var out = '\n<ul id="' + pid + '">';
+    function recurse(children, pid) {
+      pid = pid || renderOpts.pageTreeID || 'page-tree';
+      var out = '\n<ul>';
 
       u.each(children, function(page) {
-        var cls = page._children ? ' class="folder"' : '';
-        var id = ' id="' + pid + page._href.replace(/\W/g, '-') + '"';
-        out += '\n<li' + id + cls + '>'
+        var ppid = (pid + '-' + page._href).replace(/\W+/g, '-').replace(/^-|-$/g,'');
+        out += '\n<li' + (page._children ? ' id="' + ppid + '" class="folder"' : '') + '>'
             + (page.folderPage ?
               '<span class="folderPage">' + (page.name || u.unslugify(page._href) || '--') + '</span>' :
               renderLink(u.merge(renderOpts, { href:page._href, title:(page.title || page.name) })))
-            + (page._children ? recurse(page._children) : '')
+            + (page._children ? recurse(page._children, ppid) : '')
             + '</li>';
       });
-      return out + '</ul>';
+      return out + '\n</ul>';
     }
   }
 
