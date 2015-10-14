@@ -64,9 +64,15 @@ module.exports = function output(generator) {
 
     debug('output %s', output.name);
     var files = output.files = [];
-    var filterRe = new RegExp('^/(admin|server' +
-                              (opts.editor ? '' : '|pub') +
-                              ')(/|$)');
+
+    var omit = output.omitRoutes;
+    if (omit && !u.isArray(omit)) { omit = [omit]; }
+
+    // TODO: re-use similar filter in server/serve-statics
+    var filterRe = new RegExp( '^(/admin/|/server/' +
+                (opts.editor ? '' : '|/pub/') +
+                       (omit ? '|' + u.map(omit, u.escapeRegExp).join('|') : '') +
+                               ')');
 
     // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function(page) {
@@ -87,7 +93,8 @@ module.exports = function output(generator) {
         output.staticRoot ? { relPath:output.staticRoot } :
         opts.relPaths     ? { relPath:u.relPath(file.path) } :
         opts.staticRoot   ? { relPath:opts.staticRoot } :
-        null;
+        {};
+      if (output.fqImages) { renderOpts.fqImages = output.fqImages };
       file.text = generator.renderDoc(file.page, renderOpts);
       delete file.page;
     });

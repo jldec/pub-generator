@@ -8,6 +8,8 @@ var test = require('tape')
 var deepDiff = require('deep-diff').diff;
 
 var u = require('pub-util');
+var inspect = require('util').inspect;
+
 var sources = [{ path:__dirname + '/md', fragmentDelim:true }];
 var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
 
@@ -235,7 +237,7 @@ function assertNoDiff(t, actual, expected, msg) {
   var maxdiff = 5;
   if (diff) {
     t.assert(false, 'deepDiff ' + (msg || '') + '\n'
-      + u.inspect(diff.slice(0,maxdiff), {depth:3})
+      + inspect(diff.slice(0,maxdiff), {depth:3})
       + (diff.length > maxdiff ? '\n...(truncated)' : ''));
   }
 }

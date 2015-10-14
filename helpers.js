@@ -45,7 +45,7 @@ module.exports = function helpers(generator) {
     return generator.renderHtml(this, renderOpts(frame, this,
     { noWrap:true,
       fqLinks:opts.appUrl,
-      fqImages:(opts.fqImages || opts.appUrl) }));
+      fqImages:(opts.fqImages || { url:opts.appUrl } ) }));
   });
 
   // return html for a referenced page or page-fragment
@@ -60,7 +60,7 @@ module.exports = function helpers(generator) {
       ( opts.relPaths     ? { relPath:u.relPath(fragment._href) } :
         opts.staticRoot   ? { relPath:opts.staticRoot } :
         {} );
-    return u.merge(rootRenderOpts, rOpts);
+    return u.merge({}, rootRenderOpts, rOpts);
   }
 
   // expose to plugin helpers
@@ -326,11 +326,18 @@ module.exports = function helpers(generator) {
   });
 
   // logic for properly qualifying image src urls
-  function imageSrc(frame, fragment, src) {
+  function imageSrc(frame, fragment, href) {
     var rOpts = renderOpts(frame, fragment);
-    var qualify = rOpts.fqImages || rOpts.relPath;
-    if (qualify && /^\/[^\/]/.test(src)) return qualify + src;
-    return src;
+
+    // TODO: reconcile similar logic in pub-generator/render.js and marked-images
+    var imgRoute = rOpts.fqImages && (linkOpts.fqImages.route || '/images/');
+    var imgPrefix = rOpts.fqImages && linkOpts.fqImages.url;
+    var linkPrefix = rOpts.fqLinks || rOpts.relPath;
+
+    if (imgPrefix && startsWith(href, imgRoute)) { href = imgPrefix + href; }
+    else if (linkPrefix && !/^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
+
+    return href;
   }
 
   // expose to plugins

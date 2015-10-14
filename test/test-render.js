@@ -8,6 +8,7 @@
 var test = require('tape')
 
 var u = require('pub-util');
+var inspect = require('util').inspect;
 
 var tests = [
 
@@ -66,7 +67,7 @@ tests.forEach(function run(tst) {
       generator.getPage(tst.page || '/', function(err, page) {
         t.error(err);
 
-        // console.log(u.inspect(page, {depth:3}));
+        // console.log(inspect(page, {depth:3}));
 
         t.equal(typeof page, tst.pagetype || 'object');
         if (tst.pagetype !== 'undefined') {

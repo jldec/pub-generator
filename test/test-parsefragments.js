@@ -13,6 +13,7 @@ var parseFragments = require('../parsefragments');
 var parseHeaders = require('../parseheaders');
 
 var u = require('pub-util');
+var inspect = require('util').inspect;
 
 var newstyle = [
   {in:'', out:[ { _txt: '', _hdr: '' } ]},
@@ -205,7 +206,7 @@ mdstyle.forEach(function(t)  { run('mdstyle',  t, { fragmentDelim:'md-headings' 
 
 function run(name, tst, opts){
   opts = opts || {};
-  test(name + ': ' + u.inspect(tst.in) /* + ' → ' + u.inspect(tst.out) */, function(t){
+  test(name + ': ' + inspect(tst.in) /* + ' → ' + inspect(tst.out) */, function(t){
     var actual = parseFragments(tst.in, opts);
     actual.forEach(function(fragment) { parseHeaders(fragment); });
     // console.log(actual);

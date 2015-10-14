@@ -25,7 +25,8 @@ function Generator(opts) {
   var log = opts.log;
 
   // defaults
-  opts.fqImages       =  opts.fqImages || process.env.IMG || '';
+  opts.fqImages       =  opts.fqImages ||
+                         (process.env.IMG ? { url:process.env.IMG } : '');
   opts.linkNewWindow  =  opts.linkNewWindow || false;
 
   // generator API

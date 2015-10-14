@@ -8,6 +8,7 @@ var test = require('tape')
 var deepDiff = require('deep-diff').diff;
 
 var u = require('pub-util');
+var inspect = require('util').inspect;
 
 var sources = [{ path:__dirname + '/single-file-source.md', fragmentDelim:true }];
 var opts = require('pub-resolve-opts')( { jquery:false, sources:sources } );
@@ -186,7 +187,7 @@ test('single file', function(t) {
 
   getSources(_sources, opts, function(err, actual) {
     t.error(err);
-    // console.log(u.inspect(actual, {depth:4}));
+    // console.log(inspect(actual, {depth:4}));
     assertNoDiff(t, actual, fragments, 'parsed');
 
     _sources[0].files = serializeFiles(_sources[0].files); // replace memoized files
@@ -204,7 +205,7 @@ function assertNoDiff(t, actual, expected, msg) {
   var maxdiff = 5;
   if (diff) {
     t.assert(false, 'deepDiff ' + (msg || '') + '\n'
-      + u.inspect(diff.slice(0,maxdiff), {depth:3})
+      + inspect(diff.slice(0,maxdiff), {depth:3})
       + (diff.length > maxdiff ? '\n...(truncated)' : ''));
   }
 }

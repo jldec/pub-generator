@@ -28,7 +28,7 @@ module.exports = function render(generator) {
   function renderMarkdown(txt, options) {
     options = u.extend( {
       renderer:      generator.renderer,
-      fqImages:      opts.fqImages || opts.staticRoot,
+      fqImages:      opts.fqImages || { url: opts.staticRoot },
       fqLinks:       opts.staticRoot,
       linkNewWindow: opts.linkNewWindow,
       highlight:     opts.highlight }, options);
@@ -179,14 +179,15 @@ module.exports = function render(generator) {
       target = ' target="_blank"';
     }
 
-    var imgPrefix = linkOpts.fqImages || linkOpts.relPath;
+    // TODO: merge with similar logic in marked-images
+    var imgRoute = linkOpts.fqImages && (linkOpts.fqImages.route || '/images/')
+    var imgPrefix = linkOpts.fqImages && linkOpts.fqImages.url;
     var linkPrefix = linkOpts.fqLinks || linkOpts.relPath;
 
     // lookup page before munging href
     var page = generator.page$[href];
 
-    // TODO - fix hardwired /images/ prefix
-    if (imgPrefix && /^\/images\//.test(href)) { href = imgPrefix + href; }
+    if (imgPrefix && u.startsWith(href, imgRoute)) { href = imgPrefix + href; }
     else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
 
     if (linkOpts.hrefOnly) return href;
@@ -231,7 +232,7 @@ module.exports = function render(generator) {
         out += '\n<li' + (page._children ? ' id="' + ppid + '" class="folder"' : '') + '>'
             + (page.folderPage ?
               '<span class="folderPage">' + (page.name || u.unslugify(page._href) || '--') + '</span>' :
-              renderLink(u.merge(renderOpts, { href:page._href, title:(page.title || page.name) })))
+              renderLink(u.merge({}, renderOpts, { href:page._href, title:(page.title || page.name) })))
             + (page._children ? recurse(page._children, ppid) : '')
             + '</li>';
       });
