@@ -25,13 +25,15 @@ module.exports = function render(generator) {
   require('marked-forms')(renderer);
   require('marked-images')(renderer);
 
+  var defaultRenderOpts =
+  { renderer:      generator.renderer,
+    fqImages:      opts.fqImages || { url: opts.staticRoot },
+    fqLinks:       opts.staticRoot,
+    linkNewWindow: opts.linkNewWindow,
+    highlight:     opts.highlight };
+
   function renderMarkdown(txt, options) {
-    options = u.extend( {
-      renderer:      generator.renderer,
-      fqImages:      opts.fqImages || { url: opts.staticRoot },
-      fqLinks:       opts.staticRoot,
-      linkNewWindow: opts.linkNewWindow,
-      highlight:     opts.highlight }, options);
+    options = u.extend({}, defaultRenderOpts, options);
     return marked(txt, options);
   }
 
@@ -81,14 +83,14 @@ module.exports = function render(generator) {
   }
 
 
-  // render a complete page document, default to using page-relative relPath
+  // render a complete page document
   // this is the primary function for static site/page generators and servers
   // also supports scenarios where there is no layout or no doc template
   function renderDoc(page, renderOpts) {
-    if (generator.renderDocState) return log(new Error('Recursive call to renderDoc'));
-    generator.renderDocState = { renderOpts:renderOpts };
-    var out = renderTemplate(page, docTemplate(page), renderOpts); // synchronous
-    generator.renderDocState = null;
+    if (generator.renderOpts) return log(new Error('Recursive call to renderDoc'));
+    var rOpts = generator.renderOpts = u.merge({}, defaultRenderOpts, renderOpts);
+    var out = renderTemplate(page, docTemplate(page), rOpts); // synchronous
+    generator.renderOpts = null;
     return out;
   }
 

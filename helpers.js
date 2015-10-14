@@ -32,17 +32,17 @@ module.exports = function helpers(generator) {
     var text = hbp(txt);
     frame = text ? frame : txt;
     var fragment = text ? { _txt:text, _href:'/#synthetic' } : this;
-    return generator.renderHtml(fragment, renderOpts(frame, fragment));
+    return generator.renderHtml(fragment, renderOpts());
   });
 
   // like 'html' without wrapping in an editor div (for menus)
   hb.registerHelper('html-noWrap', function(frame) {
-    return generator.renderHtml(this, renderOpts(frame, this, { noWrap:true }));
+    return generator.renderHtml(this, renderOpts({ noWrap:true }));
   });
 
   // like 'html-noedit' with fully qualified urls (for feeds)
   hb.registerHelper('html-fq', function(frame) {
-    return generator.renderHtml(this, renderOpts(frame, this,
+    return generator.renderHtml(this, renderOpts(
     { noWrap:true,
       fqLinks:opts.appUrl,
       fqImages:(opts.fqImages || { url:opts.appUrl } ) }));
@@ -51,20 +51,12 @@ module.exports = function helpers(generator) {
   // return html for a referenced page or page-fragment
   hb.registerHelper('fragmentHtml', function(ref, frame) {
     var fragment = resolve(ref, this);
-    return generator.renderHtml(fragment, renderOpts(frame, fragment));
+    return generator.renderHtml(fragment, renderOpts());
   });
 
   // returns frame root (page) renderOpts merged with input renderOpts
-  function renderOpts(frame, fragment, rOpts) {
-    var rootRenderOpts = (generator.renderDocState && generator.renderDocState.renderOpts) ||
-      ( opts.relPaths     ? { relPath:u.relPath(fragment._href) } :
-        opts.staticRoot   ? { relPath:opts.staticRoot } :
-        {} );
-    return u.merge({}, rootRenderOpts, rOpts);
-  }
+  function renderOpts(rOpts) { return u.merge({}, generator.renderOpts, rOpts); }
 
-  // expose to plugin helpers
-  // e.g. required when calling generator.renderLink(renderOpts(frame, this))
   hb.renderOpts = renderOpts;
 
   // return html from applying another template
@@ -100,27 +92,27 @@ module.exports = function helpers(generator) {
 
   // return link html for this
   hb.registerHelper('pageLink', function(frame) {
-    return generator.renderLink(renderOpts(frame, this, { href:this._href }));
+    return generator.renderLink(renderOpts( { href:this._href } ));
   });
 
   // return link href for this
   hb.registerHelper('pageHref', function(frame) {
-    return generator.renderLink(renderOpts(frame, this, { href:this._href, hrefOnly:true }));
+    return generator.renderLink(renderOpts( { href:this._href, hrefOnly:true } ));
   });
 
   // return link html for a url/name
   hb.registerHelper('linkTo', function(url, name, frame) {
-    return generator.renderLink(renderOpts(frame, this, { href:url, text:name }));
+    return generator.renderLink(renderOpts( { href:url, text:name } ));
   });
 
   // return link to next page
   hb.registerHelper('next', function(frame) {
-    return (this._next ? generator.renderLink(renderOpts(frame, this, { href:this._next._href })) : '');
+    return (this._next ? generator.renderLink(renderOpts( { href:this._next._href } )) : '');
   });
 
   // return link to previous page
   hb.registerHelper('prev', function(frame) {
-    return (this._prev ? generator.renderLink(renderOpts(frame, this, { href:this._prev._href })) : '');
+    return (this._prev ? generator.renderLink(renderOpts( { href:this._prev._href } )) : '');
   });
 
   // encode URI component
@@ -203,7 +195,7 @@ module.exports = function helpers(generator) {
     if (!hbp(groupBy)) { frame = groupBy; groupBy = defaultGroup = null; }
 
     return generator.renderPageTree(generator.home,
-      renderOpts(frame, this, { groupBy:groupBy, defaultGroup:defaultGroup }));
+      renderOpts( { groupBy:groupBy, defaultGroup:defaultGroup } ));
   });
 
   hb.registerHelper('eachPageWithTemplate', function(tname, frame) {
@@ -269,13 +261,13 @@ module.exports = function helpers(generator) {
     switch (pageLang(page)) {
       case 'fr':    return 'Forkez-moi sur GitHub';
       case 'he':    return 'צור פיצול בGitHub';
-      case 'id':    return 'Fork saya di Github';
-      case 'ko':    return 'Github에서 포크하기';
-      case 'pt-br': return 'Faça um fork no Github';
-      case 'pt-pt': return 'Faz fork no Github';
-      case 'tr':    return 'Github üstünde Fork edin';
-      case 'uk':    return 'скопіювати на Github';
-      default:      return 'Fork me on Github';
+      case 'id':    return 'Fork saya di GitHub';
+      case 'ko':    return 'GitHub에서 포크하기';
+      case 'pt-br': return 'Faça um fork no GitHub';
+      case 'pt-pt': return 'Faz fork no GitHub';
+      case 'tr':    return 'GitHub üstünde Fork edin';
+      case 'uk':    return 'скопіювати на GitHub';
+      default:      return 'Fork me on GitHub';
     }
   }
 
@@ -315,7 +307,7 @@ module.exports = function helpers(generator) {
   });
 
   function relPath(frame, fragment) {
-    return renderOpts(frame, fragment).relPath || '';
+    return renderOpts().relPath || '';
   }
 
   // expose to plugins
@@ -326,16 +318,16 @@ module.exports = function helpers(generator) {
   });
 
   // logic for properly qualifying image src urls
-  function imageSrc(frame, fragment, href) {
-    var rOpts = renderOpts(frame, fragment);
+  function imageSrc(href) {
+    var rOpts = renderOpts();
 
     // TODO: reconcile similar logic in pub-generator/render.js and marked-images
-    var imgRoute = rOpts.fqImages && (linkOpts.fqImages.route || '/images/');
-    var imgPrefix = rOpts.fqImages && linkOpts.fqImages.url;
+    var imgRoute = rOpts.fqImages && (rOpts.fqImages.route || '/images/');
+    var imgPrefix = rOpts.fqImages && rOpts.fqImages.url;
     var linkPrefix = rOpts.fqLinks || rOpts.relPath;
 
-    if (imgPrefix && startsWith(href, imgRoute)) { href = imgPrefix + href; }
-    else if (linkPrefix && !/^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
+    if (imgPrefix && u.startsWith(href, imgRoute)) { href = imgPrefix + href; }
+    else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
 
     return href;
   }
@@ -404,20 +396,20 @@ module.exports = function helpers(generator) {
   function defaultFragmentHtml(fragmentName, faMarkdown, html, frame) {
 
     var f = generator.fragment$[fragmentName];
-    if (f) return fragmentHtml(f, frame);
+    if (f) return fragmentHtml(f);
 
     if (faMarkdown && u.find(opts.pkgs, function(pkg) {
       return ('pub-pkg-font-awesome' === pkg.pkgName);
     })) {
       return fragmentHtml( {_txt:faMarkdown,
-        _href:'/#synthetic' }, frame, {noWrap:1});
+        _href:'/#synthetic' }, {noWrap:1});
     }
     return /</.test(html) ? html :
-      fragmentHtml( {_txt:html, _href:'/#synthetic' }, frame, {noWrap:1});
+      fragmentHtml( {_txt:html, _href:'/#synthetic' }, {noWrap:1});
   }
 
-  function fragmentHtml(fragment, frame, opts) {
-    return generator.renderHtml(fragment, renderOpts(frame, fragment, opts));
+  function fragmentHtml(fragment, opts) {
+    return generator.renderHtml(fragment, renderOpts(opts));
   }
 
   function githubUrl(pkgJson) {
@@ -451,6 +443,7 @@ module.exports = function helpers(generator) {
   hb.registerHelper('image', function(src, text, title) {
     src = hbp(src) || this.image || this.icon;
     if (!src) return '';
+    src = imageSrc(src);
     text = hbp(text) || this.name || '';
     title = hbp(title);
     return generator.renderer.image(src, title, text);
