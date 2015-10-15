@@ -25,15 +25,17 @@ module.exports = function render(generator) {
   require('marked-forms')(renderer);
   require('marked-images')(renderer);
 
-  var defaultRenderOpts =
-  { renderer:      generator.renderer,
-    fqImages:      opts.fqImages || { url: opts.staticRoot },
-    fqLinks:       opts.staticRoot,
-    linkNewWindow: opts.linkNewWindow,
-    highlight:     opts.highlight };
+  var defaultRenderOpts = function() {
+    return {
+      renderer:      generator.renderer,
+      fqImages:      opts.fqImages || { url: opts.staticRoot },
+      fqLinks:       opts.staticRoot,
+      linkNewWindow: opts.linkNewWindow,
+      highlight:     opts.highlight };
+  }
 
   function renderMarkdown(txt, options) {
-    options = u.extend({}, defaultRenderOpts, options);
+    options = u.extend({}, defaultRenderOpts(), options);
     return marked(txt, options);
   }
 
@@ -88,7 +90,7 @@ module.exports = function render(generator) {
   // also supports scenarios where there is no layout or no doc template
   function renderDoc(page, renderOpts) {
     if (generator.renderOpts) return log(new Error('Recursive call to renderDoc'));
-    var rOpts = generator.renderOpts = u.merge({}, defaultRenderOpts, renderOpts);
+    var rOpts = generator.renderOpts = u.merge({}, defaultRenderOpts(), renderOpts);
     var out = renderTemplate(page, docTemplate(page), rOpts); // synchronous
     generator.renderOpts = null;
     return out;
