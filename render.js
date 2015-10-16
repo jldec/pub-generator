@@ -28,8 +28,8 @@ module.exports = function render(generator) {
   var defaultRenderOpts = function() {
     return {
       renderer:      generator.renderer,
-      fqImages:      opts.fqImages || { url: opts.staticRoot },
-      fqLinks:       opts.staticRoot,
+      fqImages:      opts.fqImages,
+      fqLinks:       opts.fqLinks || opts.staticRoot,
       linkNewWindow: opts.linkNewWindow,
       highlight:     opts.highlight };
   }
@@ -39,7 +39,7 @@ module.exports = function render(generator) {
     return marked(txt, options);
   }
 
-  generator.renderDocState = null;  // hack to keep track of renderOpts while rendering
+  generator.renderOpts      = defaultRenderOpts;  // TODO: revisit (cannot renderDoc with staticRoot from editor)
 
   generator.renderMarkdown  = renderMarkdown;  // low level markdown renderer
   generator.renderTemplate  = renderTemplate;  // low level template renderer (used by renderDoc/Layout/Page)
@@ -89,10 +89,10 @@ module.exports = function render(generator) {
   // this is the primary function for static site/page generators and servers
   // also supports scenarios where there is no layout or no doc template
   function renderDoc(page, renderOpts) {
-    if (generator.renderOpts) return log(new Error('Recursive call to renderDoc'));
-    var rOpts = generator.renderOpts = u.merge({}, defaultRenderOpts(), renderOpts);
-    var out = renderTemplate(page, docTemplate(page), rOpts); // synchronous
-    generator.renderOpts = null;
+    if (generator.renderOpts !== defaultRenderOpts) return log(new Error('Recursive call to renderDoc'));
+    var rOpts = generator.renderOpts = function() { return u.merge({}, defaultRenderOpts(), renderOpts) };
+    var out = renderTemplate(page, docTemplate(page), rOpts()); // synchronous
+    generator.renderOpts = defaultRenderOpts;
     return out;
   }
 
@@ -145,8 +145,9 @@ module.exports = function render(generator) {
   // rewrite local links using page names and https where necessary
   // NOTE: opts are also passed through to marked() - opts.fqLinks will qualify urls.
   function renderHtml(fragment, opts) {
-    if (!fragment || !fragment._txt) return '';
-    var html = renderMarkdown(fragment._txt, opts);
+    var html = (!fragment || !u.trim(fragment._txt)) ?
+      '&nbsp;' : // show space for empty/missing to allow selection/editing
+      renderMarkdown(fragment._txt, opts);
     // use opts.noWrap to avoid breaking CSS nested selectors like li > ul in menus
     if (opts && opts.noWrap) return html;
     return '<div data-render-html="' + esc(fragment._href) + '">' + html + '</div>';

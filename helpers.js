@@ -55,7 +55,7 @@ module.exports = function helpers(generator) {
   });
 
   // returns frame root (page) renderOpts merged with input renderOpts
-  function renderOpts(rOpts) { return u.merge({}, generator.renderOpts, rOpts); }
+  function renderOpts(rOpts) { return u.merge({}, generator.renderOpts(), rOpts); }
 
   hb.renderOpts = renderOpts;
 
@@ -130,8 +130,8 @@ module.exports = function helpers(generator) {
   // TODO: configurable endpoint and more sensible logic for controlling production/static
   hb.registerHelper('pub-ux', function(frame) {
     if (!opts.production && opts.editor) {
-      return (opts['no-sockets'] ? '' : '<script src="' + relPath(frame) + '/socket.io/socket.io.js"></script>\n') +
-             '<script src="' + relPath(frame) + '/server/pub-ux.js"></script>';
+      return (opts['no-sockets'] ? '' : '<script src="' + relPath() + '/socket.io/socket.io.js"></script>\n') +
+             '<script src="' + relPath() + '/server/pub-ux.js"></script>';
     }
     return '';
   });
@@ -306,19 +306,20 @@ module.exports = function helpers(generator) {
     return (h.fragment && h.fragment.slice(1)) || '';
   });
 
-  function relPath(frame, fragment) {
+  hb.registerHelper('relPath', function(frame) {
+    return relPath();
+  });
+
+  function relPath() {
     return renderOpts().relPath || '';
   }
 
-  // expose to plugins
-  hb.relPath = relPath;
-
-  hb.registerHelper('relPath', function(frame) {
-    return relPath(frame, this);
+  hb.registerHelper('fixPath', function(href) {
+    return fixPath(href);
   });
 
   // logic for properly qualifying image src urls
-  function imageSrc(href) {
+  function fixPath(href) {
     var rOpts = renderOpts();
 
     // TODO: reconcile similar logic in pub-generator/render.js and marked-images
@@ -332,22 +333,23 @@ module.exports = function helpers(generator) {
     return href;
   }
 
-  // expose to plugins
-  hb.imageSrc = imageSrc;
+  // also expose to plugins
+  hb.relPath = relPath;
+  hb.fixPath = fixPath;
 
   // inject CSS from themes and packages
   hb.registerHelper('injectCss', function(frame) {
     return u.map(opts.injectCss, function(css) {
-      return '<link rel="stylesheet" href="' + relPath(frame, this) + css.path + '">';
+      return '<link rel="stylesheet" href="' + relPath() + css.path + '">';
     }).join('\n');
   });
 
   // inject javascript from themes and packages
   hb.registerHelper('injectJs', function(frame) {
-    var pubRef = JSON.stringify( { href:this._href, relPath:relPath(frame, this) } );
+    var pubRef = JSON.stringify( { href:this._href, relPath:relPath() } );
     return '<script>window.pubRef = ' + pubRef + ';</script>\n' +
       u.map(opts.injectJs, function(js) {
-      return '<script src="' + relPath(frame, this) + js.path + '"></script>';
+      return '<script src="' + relPath() + js.path + '"></script>';
     }).join('\n');
   });
 
@@ -443,7 +445,6 @@ module.exports = function helpers(generator) {
   hb.registerHelper('image', function(src, text, title) {
     src = hbp(src) || this.image || this.icon;
     if (!src) return '';
-    src = imageSrc(src);
     text = hbp(text) || this.name || '';
     title = hbp(title);
     return generator.renderer.image(src, title, text);
