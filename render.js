@@ -20,12 +20,12 @@ module.exports = function render(generator) {
   var log = opts.log;
 
   // configure markdown rendering
-  var renderer = generator.renderer = new marked.Renderer();
+  var renderer = generator.renderer = new marked.Renderer(defaultRenderOpts());
   renderer.link = renderLink;
   require('marked-forms')(renderer);
   require('marked-images')(renderer);
 
-  var defaultRenderOpts = function() {
+  function defaultRenderOpts() {
     return {
       renderer:      generator.renderer,
       fqImages:      opts.fqImages,
