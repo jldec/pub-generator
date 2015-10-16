@@ -29,7 +29,8 @@ module.exports = function render(generator) {
     return {
       renderer:      generator.renderer,
       fqImages:      opts.fqImages,
-      fqLinks:       opts.fqLinks || opts.staticRoot,
+      fqLinks:       opts.fqLinks || opts.staticRoot, // staticRoot only for static-hosted editor
+      relPath:       opts.relPath || opts.staticRoot, // staticRoot only for static-hosted editor
       linkNewWindow: opts.linkNewWindow,
       highlight:     opts.highlight };
   }
