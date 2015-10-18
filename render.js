@@ -151,7 +151,8 @@ module.exports = function render(generator) {
       renderMarkdown(fragment._txt, opts);
     // use opts.noWrap to avoid breaking CSS nested selectors like li > ul in menus
     if (opts && opts.noWrap) return html;
-    return '<div data-render-html="' + esc(fragment._href) + '">' + html + '</div>';
+    var href = (fragment && esc(fragment._href)) || '';
+    return '<div data-render-html="' + href + '">' + html + '</div>';
   };
 
 
