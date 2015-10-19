@@ -76,8 +76,9 @@ module.exports = function helpers(generator) {
   // block-helper for fragments matching pattern
   // fragment pattern should start with #... or /page#...
   hb.registerHelper('eachFragment', function(pattern, frame) {
-    pattern = hbp(pattern); frame = pattern ? frame : pattern;
-    var rg = selectFragments(pattern, this);
+    var p = hbp(pattern);
+    frame = p ? frame : pattern;
+    var rg = selectFragments(p, this);
     var map = u.map(rg, function(fragment, index) {
       frame.data.index = index;
       return frame.fn(fragment, frame);
