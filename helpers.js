@@ -350,7 +350,7 @@ module.exports = function helpers(generator) {
     var pubRef = JSON.stringify( { href:this._href, relPath:relPath() } );
     return '<script>window.pubRef = ' + pubRef + ';</script>\n' +
       u.map(opts.injectJs, function(js) {
-      return '<script src="' + relPath() + js.path + '"></script>';
+      return '<script src="' + relPath() + js.path + '" ' + (js.async || '') + '></script>';
     }).join('\n');
   });
 

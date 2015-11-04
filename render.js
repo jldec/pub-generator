@@ -30,7 +30,7 @@ module.exports = function render(generator) {
       renderer:      generator.renderer,
       fqImages:      opts.fqImages,
       fqLinks:       opts.fqLinks || opts.staticRoot, // staticRoot only for static-hosted editor
-      relPath:       opts.relPath || opts.staticRoot, // staticRoot only for static-hosted editor
+      relPath:       opts.relPaths ? '.' : opts.staticRoot,
       linkNewWindow: opts.linkNewWindow,
       highlight:     opts.highlight };
   }
@@ -220,9 +220,9 @@ module.exports = function render(generator) {
     if (renderOpts.groupBy) {
       var folderPages =
         u.map(u.groupBy(root._children, renderOpts.groupBy), function(children, name) {
-          if (name === 'undefined') { name = renderOpts.defaultGroup || 'Other'; }
+          if (name === 'undefined') { name = renderOpts.defaultGroup || ''; }
           return { folderPage: true,
-                   _href:      '/' + u.slugify(name) + '/',
+                   _href:      name ? '/' + u.slugify(name) + '/' : '',
                    _children:  children,
                    name:       name };
         });
@@ -238,7 +238,7 @@ module.exports = function render(generator) {
         var ppid = (pid + '-' + page._href).replace(/\W+/g, '-').replace(/^-|-$/g,'');
         out += '\n<li' + (page._children ? ' id="' + ppid + '" class="folder"' : '') + '>'
             + (page.folderPage ?
-              '<span class="folderPage">' + (page.name || u.unslugify(page._href) || '--') + '</span>' :
+              ((page.name || page._href) ? '<span class="folderPage">' + (page.name || u.unslugify(page._href)) + '</span>' : '') :
               renderLink(u.merge({}, renderOpts, { href:page._href, title:(page.title || page.name) })))
             + (page._children ? recurse(page._children, ppid) : '')
             + '</li>';
