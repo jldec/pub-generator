@@ -30,7 +30,7 @@ function Generator(opts) {
   opts.linkNewWindow  =  opts.linkNewWindow || false;
 
   // generator API
-  var generator = u.extend (this, {
+  var generator = u.assign(this, {
 
     // properties
     opts:              opts,

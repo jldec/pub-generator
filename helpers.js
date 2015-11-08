@@ -55,7 +55,7 @@ module.exports = function helpers(generator) {
   });
 
   // returns frame root (page) renderOpts merged with input renderOpts
-  function renderOpts(rOpts) { return u.merge({}, generator.renderOpts(), rOpts); }
+  function renderOpts(rOpts) { return u.assign({}, generator.renderOpts(), rOpts); }
 
   hb.renderOpts = renderOpts;
 
