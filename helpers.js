@@ -321,17 +321,7 @@ module.exports = function helpers(generator) {
 
   // logic for properly qualifying image src urls
   function fixPath(href) {
-    var rOpts = renderOpts();
-
-    // TODO: reconcile similar logic in pub-generator/render.js and marked-images
-    var imgRoute = rOpts.fqImages && (rOpts.fqImages.route || '/images/');
-    var imgPrefix = rOpts.fqImages && rOpts.fqImages.url;
-    var linkPrefix = rOpts.fqLinks || rOpts.relPath;
-
-    if (imgPrefix && u.startsWith(href, imgRoute)) { href = imgPrefix + href; }
-    else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
-
-    return href;
+    return generator.rewriteLink(href, renderOpts());
   }
 
   // also expose to plugins
@@ -444,11 +434,11 @@ module.exports = function helpers(generator) {
   // text defaults to this.name and is optional
   // title is optional
   hb.registerHelper('image', function(src, text, title) {
-    src = hbp(src) || this.image || this.icon;
-    if (!src) return '';
-    text = hbp(text) || this.name || '';
-    title = hbp(title);
-    return generator.renderer.image(src, title, text);
+    var o = { href: hbp(src) || this.image || this.icon };
+    if (!o.href) return '';
+    o.text = hbp(text) || this.name || '';
+    o.title = hbp(title);
+    return generator.renderImage(renderOpts(o));
   });
 
   // render option or page-property as an HTML comment

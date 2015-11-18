@@ -22,8 +22,8 @@ module.exports = function render(generator) {
   // configure markdown rendering
   var renderer = generator.renderer = new marked.Renderer(defaultRenderOpts());
   renderer.link = renderLink;
+  renderer.image = renderImage;
   require('marked-forms')(renderer);
-  require('marked-images')(renderer);
 
   function defaultRenderOpts(docPage) {
     var o = {
@@ -63,7 +63,10 @@ module.exports = function render(generator) {
   generator.layoutTemplate  = layoutTemplate;  // returns name of layout template for a page
   generator.pageTemplate    = pageTemplate;    // returns name of page template for a page
 
-  generator.renderLink      = renderLink;      // render link given {href, name, title, noEscape}
+  generator.renderLink      = renderLink;      // marked-compatible <a> renderer
+  generator.renderImage     = renderImage;     // marked-compatible <img> renderer
+  generator.rewriteLink     = rewriteLink;     // link rewriter for relPaths etc.
+
   generator.renderPageTree  = renderPageTree;  // render page hierarchy starting at /
 
   generator.parseLinks      = parseLinks;      // parse links from fragment._txt
@@ -171,7 +174,6 @@ module.exports = function render(generator) {
   // supports alternative signature using object {href, title, text, hrefOnly}
   // uses page.name or href for link text, if text is missing
   // and does reasonable things for missing name, href
-  // could be extended to rewrite links
   // NOTE: params passed as strings are assumed pre-html-escaped, params in {} are not.
   function renderLink(href, title, text) {
     var renderOpts;
@@ -186,6 +188,9 @@ module.exports = function render(generator) {
       text = esc(renderOpts.text);
     }
 
+    // lookup page before munging href
+    var page = generator.page$[href];
+
     var target = '';
 
     if (opts.linkNewWindow && /^http/i.test(href)) {
@@ -196,16 +201,7 @@ module.exports = function render(generator) {
       target = ' target="_blank"';
     }
 
-    // TODO: merge with similar logic in marked-images
-    var imgRoute = renderOpts.fqImages && (renderOpts.fqImages.route || '/images/')
-    var imgPrefix = renderOpts.fqImages && renderOpts.fqImages.url;
-    var linkPrefix = renderOpts.fqLinks || renderOpts.relPath;
-
-    // lookup page before munging href
-    var page = generator.page$[href];
-
-    if (imgPrefix && u.startsWith(href, imgRoute)) { href = imgPrefix + href; }
-    else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
+    href = rewriteLink(href, renderOpts);
 
     if (renderOpts.hrefOnly) return href;
 
@@ -219,9 +215,75 @@ module.exports = function render(generator) {
 
     var onclick = (page && page.onclick) ? ' onclick="' + esc(page.onclick) + '"' : '';
 
+    // auto-highlight link to current docPage with class="{opts.openClass}"
     var css = (renderOpts.openClass && page && renderOpts.docPage === page) ? ' class = "' + esc(renderOpts.openClass) + '"' : '';
 
     return '<a href="' + (href || '#') + '"' + (title ? ' title="' + title + '"' : '') + css + target + onclick + '>' + name + '</a>';
+  }
+
+
+  // renderImage (same as marked-image module but can call rewriteLink)
+  // function signature matches marked.js image renderer (href, title, text)
+  // supports alternative object param {href, title, text, renderOpts...}
+  // NOTE: params passed as strings are assumed pre-html-escaped, params in {} are not.
+  function renderImage(href, title, text) {
+    var renderOpts;
+
+    if (typeof href !== 'object') {
+      renderOpts = this.options || defaultRenderOpts(); // this -> marked renderer
+    }
+    else {
+      renderOpts = href;
+      href = esc(renderOpts.href);
+      title = esc(renderOpts.title);
+      text = esc(renderOpts.text);
+    }
+
+    var out, iframe;
+
+    href = rewriteLink(href, renderOpts);
+
+    if (href && (m = href.match(/vimeo\/(\d+)/i))) {
+      iframe = true;
+      out = '<iframe src="//player.vimeo.com/video/' + m[1] + '"' +
+              ' frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen';
+    }
+    else {
+      out = '<img src="' + href + '" alt="' + text + '"';
+    }
+
+    var a = (title && title.split(/\s+/)) || [];
+    var b = [];
+    var m;
+    a.forEach(function(w) {
+      if (m = w.match(/^(\d+)x(\d+)$/)) return (out += ' width="' + m[1] + '" height="' + m[2] + '"');
+      if (m = w.match(/^(\w+)=(\w+)$/)) return (out += ' ' + m[1] + '="' + m[2] + '"');
+      if (w) return b.push(w);
+    })
+    title = b.join(' ');
+
+    if (title) {
+      out += ' title="' + title + '"';
+    }
+
+    out += iframe ? '></iframe>' :
+           renderer.options.xhtml ? '/>' :
+           '>';
+
+    return out;
+  }
+
+
+  // Link rewriting logic - shared by renderLink and renderImage and hb.fixPath
+  function rewriteLink(href, renderOpts) {
+    var imgRoute = renderOpts.fqImages && (renderOpts.fqImages.route || '/images/')
+    var imgPrefix = renderOpts.fqImages && renderOpts.fqImages.url;
+    var linkPrefix = renderOpts.fqLinks || renderOpts.relPath;
+
+    if (imgPrefix && u.startsWith(href, imgRoute)) { href = imgPrefix + href; }
+    else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
+
+    return href;
   }
 
   // recursively build ul-li tree starting with root._children

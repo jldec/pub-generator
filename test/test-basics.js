@@ -199,6 +199,15 @@ var tests =
   result: '<div data-render-html="/link"><p><a href="/world">hello</a></p>\n</div>'
 },
 
+{ name: 'basic image',
+  page: '/image',
+  file: {
+    path: '/image.md',
+    text: '![tweet](/images/birdie-num-num.jpg)'
+  },
+  result: '<div data-render-html="/image"><p><img src="/images/birdie-num-num.jpg" alt="tweet"></p>\n</div>'
+},
+
 { name: 'local and absolute link with relPath',
   page: '/link',
   file: {
