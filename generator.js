@@ -60,6 +60,7 @@ function Generator(opts) {
     getPage:           getPage,      // async get page (respects getX headers)
     findPage:          findPage,     // sync get page (no getX headers support)
     redirect:          redirect,     // lookup alias or redirect url
+    debug:             debug,        // help debug plugins etc.
 
     // other modules
     Fragment:          require('./fragment'),
