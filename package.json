@@ -1,6 +1,6 @@
 {
   "name": "pub-generator",
-  "version": "1.18.10",
+  "version": "1.18.11",
   "description": "markdown/handlebars site generator - runs in node or browser",
   "main": "generator.js",
   "dependencies": {
@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "deep-diff": "^0.3.3",
-    "pub-src-fs": "^1.4.4",
+    "pub-src-fs": "^1.4.5",
     "rmdir": "^1.1.0",
     "tape": "^4.2.2"
   },
