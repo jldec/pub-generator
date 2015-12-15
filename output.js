@@ -68,7 +68,7 @@ module.exports = function output(generator) {
     var omit = output.omitRoutes;
     if (omit && !u.isArray(omit)) { omit = [omit]; }
 
-    // TODO: re-use similar filter in server/serve-statics
+    // TODO: re-use similar filter in server/serve-statics and server/serve-scripts
     var filterRe = new RegExp( '^(/admin/|/server/' +
                 (opts.editor ? '' : '|/pub/') +
                        (omit ? '|' + u.map(omit, u.escapeRegExp).join('|') : '') +

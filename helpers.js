@@ -131,7 +131,9 @@ module.exports = function helpers(generator) {
   // TODO: configurable endpoint and more sensible logic for controlling production/static
   hb.registerHelper('pub-ux', function(frame) {
     if (!opts.production && opts.editor) {
-      return (opts['no-sockets'] ? '' : '<script src="' + relPath() + '/socket.io/socket.io.js"></script>\n') +
+      return (opts['no-sockets'] ? '' :
+             ('<script src="' + relPath() + '/socket.io/socket.io.js"></script>\n' +
+                '<script src="' + relPath() + '/server/pub-sockets.js"></script>\n')) +
              '<script src="' + relPath() + '/server/pub-ux.js"></script>';
     }
     return '';
