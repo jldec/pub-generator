@@ -66,24 +66,43 @@ module.exports = function helpers(generator) {
 
   // block-helper for rendering all content pages e.g. to generate nav/toc
   hb.registerHelper('eachPage', function(frame) {
+    var localdata = hb.createFrame(frame.data);
     var map = u.map(generator.contentPages, function(page, index) {
-      frame.data.index = index;
-      return frame.fn(page, frame);
+      localdata.index = index;
+      return frame.fn(page, { data:localdata });
     });
     return map.join('');
   });
+
 
   // block-helper for fragments matching pattern
   // fragment pattern should start with #... or /page#...
   hb.registerHelper('eachFragment', function(pattern, frame) {
     var p = hbp(pattern);
     frame = p ? frame : pattern;
+    var localdata = hb.createFrame(frame.data);
     var rg = selectFragments(p, this);
     var map = u.map(rg, function(fragment, index) {
-      frame.data.index = index;
-      return frame.fn(fragment, frame);
+      localdata.index = index;
+      if (index === rg.length - 1) { localdata.last = true; }
+      return frame.fn(fragment, { data:localdata });
     });
     return map.join('');
+
+    // lookup multiple fragments via href pattern match
+    // works like resolve with a wildcard
+    // careful using this without #
+    function selectFragments(refpat, context) {
+      refpat = refpat || '#';
+      if (/^#/.test(refpat)) {
+        refpat = '^' + u.escapeRegExp((context._href || '/') + refpat);
+      }
+      else {
+        refpat = u.escapeRegExp(refpat);
+      }
+      var re = new RegExp(refpat);
+      return u.filter(generator.fragments, function(fragment) { return re.test(fragment._href); });
+    }
   });
 
   // return frame.data.index mod n (works only inside eachPage or eachFragment)
@@ -215,16 +234,6 @@ module.exports = function helpers(generator) {
     if (typeof ref !== 'string') return ref;
     if (/^#/.test(ref)) { ref = (context._href || '/') + ref; }
     return generator.fragment$[ref];
-  }
-
-  // lookup multiple fragments via href pattern match
-  // works like resolve with a wildcard
-  // careful using this without #
-  function selectFragments(refpat, context) {
-    refpat = refpat || '#';
-    if (/^#/.test(refpat)) { refpat = (context._href || '/') + refpat; }
-    var re = new RegExp(u.escapeRegExp(refpat));
-    return u.filter(generator.fragments, function(fragment) { return re.test(fragment._href); });
   }
 
   // determine language string for a page
