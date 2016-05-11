@@ -77,6 +77,7 @@ module.exports = function output(generator) {
     // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function(page) {
       if (filterRe.test(page._href)) return;
+      if (output.match && !output.match(page)) return;
       var file = { page: page, path: page._href }
       if (page['http-header']) { file['http-header'] = page['http-header']; }
       files.push(file);
