@@ -193,3 +193,22 @@ function assertNoDiff(t, actual, expected, msg) {
       + (diff.length > maxdiff ? '\n...(truncated)' : ''));
   }
 }
+
+test('use default extension', function (t) {
+  // start from clone of sources without files
+  var _sources = [u.omit(sources[0], 'files')];
+  opts.defaultExt = '.html';
+
+  getSources(_sources, opts, function (err, actual) {
+    t.error(err);
+
+    _sources[0].files = serializeFiles(_sources[0].files); // replace memoized files
+
+    getSources(_sources, opts, function (err, actual2) {
+      t.error(err);
+      t.equal(actual2[2]._href, '/draft-page.html');
+      t.equal(actual2[0]._href, '/')
+      t.end();
+    });
+  });
+});
