@@ -129,9 +129,9 @@ function parseFilesPUB(source, opts) {
           !lbl.hasOwnProperty('_ext') &&
           lbl.hasOwnProperty('_name') &&
           lbl._name !== '' &&
-          opts.hasOwnProperty('defaultExt')
+          source.hasOwnProperty('defaultExt')
       ) {
-        lbl._ext = opts.defaultExt;
+        lbl._ext = source.defaultExt;
       }
 
       // record ._href

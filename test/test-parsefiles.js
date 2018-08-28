@@ -197,7 +197,7 @@ function assertNoDiff(t, actual, expected, msg) {
 test('use default extension', function (t) {
   // start from clone of sources without files
   var _sources = [u.omit(sources[0], 'files')];
-  opts.defaultExt = '.html';
+  _sources[0].defaultExt = '.html';
 
   getSources(_sources, opts, function (err, actual) {
     t.error(err);
