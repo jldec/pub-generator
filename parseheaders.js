@@ -16,7 +16,7 @@
  *    http://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes
  *    interop with http://api.jquery.com/data/#data-html5
  *
- * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
+ * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  */
 
 var u = require('pub-util');

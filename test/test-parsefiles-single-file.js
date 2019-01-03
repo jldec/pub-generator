@@ -1,6 +1,6 @@
 /**
  * test-parsefiles single-file
- * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
+ * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  *
 **/
 
@@ -148,7 +148,7 @@ snapshots = [
     name: 'Bar some time ago' }
 ];
 
-
+// NOTE: test ignores file-related structure - could not make deep-diff work properly
 file.fragments = [
     fragments[0],
     fragments[1],
@@ -201,7 +201,9 @@ test('single file', function(t) {
 });
 
 function assertNoDiff(t, actual, expected, msg) {
-  var diff = deepDiff(actual, expected);
+  var diff = deepDiff(actual, expected, function filter(path, key){
+    return (-1 !== ['_file'].indexOf(key));
+  });
   var maxdiff = 5;
   if (diff) {
     t.assert(false, 'deepDiff ' + (msg || '') + '\n'

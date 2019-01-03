@@ -1,7 +1,7 @@
 /**
  * pub-generator test-basics
  * tests for basic conversion of single file to single page (with urls)
- * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
+ * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  *
 **/
 

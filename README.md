@@ -1,4 +1,5 @@
 # pub-generator
+[![Build Status](https://api.travis-ci.org/jldec/pub-generator.svg?branch=master)](https://travis-ci.org/jldec/pub-generator)
 
 - markdown/handlebars site generator
 - runs in node as part of pub-server, or in browser e.g. inside `pub-pkg-editor`
