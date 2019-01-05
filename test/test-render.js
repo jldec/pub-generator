@@ -13,7 +13,7 @@ var tests = [
     page: '/page',
     file: {
       path: '/page.md',
-      text: ms(function(){/*
+      text: mls(function(){/*
 ---- ----
 template: custom
 
@@ -27,12 +27,11 @@ hello world
     result: '<a href="/page">Page</a>'
   },
 
-
   { name: '{{pageLink}} with escaping',
     page: '/a/b/c-and-d',
     file: {
       path: '/foo.md',
-      text: ms(function(){/*
+      text: mls(function(){/*
 ---- /a/b/c & d ----
 name: 1 < 2 > 1 & we're happy
 template: custom
@@ -45,6 +44,15 @@ hello world
     */})
     },
     result: '<a href="/a/b/c-and-d">1 &lt; 2 &gt; 1 &amp; we&#39;re happy</a>'
+  },
+
+  { name: 'markdown input field with name with a space',
+    page: '/form-1',
+    file: {
+      path: '/form 1.md',
+      text: '[??](input 1)'
+    },
+    result: '<div data-render-html="/form-1"><p>\n<input name="input 1" id="input-1"></p>\n</div>'
   }
 
 ];
@@ -83,7 +91,8 @@ tests.forEach(function run(tst) {
 // returns input function body minus the first and last lines
 // use these for comment delimiters /* and s*/
 // works as long as the rest of the text doesn't contain '*/'
-// credit Eli Bendersky - http://eli.thegreenplace.net/
-function ms(f) {
+// credit Eli Bendersky
+// https://eli.thegreenplace.net/2013/11/09/javascript-es-5-hack-for-clean-multi-line-strings
+function mls(f) {
   return f.toString().split('\n').slice(1, -1).join('\n');
 }

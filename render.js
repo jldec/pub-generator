@@ -21,7 +21,7 @@ module.exports = function render(generator) {
   var renderer = generator.renderer = new marked.Renderer(defaultRenderOpts());
   renderer.link = renderLink;
   renderer.image = renderImage;
-  require('marked-forms')(renderer);
+  require('marked-forms')(renderer, marked);
 
   function defaultRenderOpts(docPage) {
     var o = {
