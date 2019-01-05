@@ -7,9 +7,9 @@
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  *
 **/
+/*eslint no-unused-vars: ["error", { "argsIgnorePattern": "frame" }]*/
 
 var u = require('pub-util');
-var path = require('path');
 
 module.exports = function helpers(generator) {
 
@@ -43,9 +43,11 @@ module.exports = function helpers(generator) {
   // like 'html-noedit' with fully qualified urls (for feeds)
   hb.registerHelper('html-fq', function(frame) {
     return generator.renderHtml(this, renderOpts(
-    { noWrap:true,
-      fqLinks:opts.appUrl,
-      fqImages:(opts.fqImages || { url:opts.appUrl } ) }));
+      { noWrap: true,
+        fqLinks: opts.appUrl,
+        fqImages: (opts.fqImages || { url:opts.appUrl } )
+      }
+    ));
   });
 
   // return html for a referenced page or page-fragment
@@ -205,7 +207,7 @@ module.exports = function helpers(generator) {
 
   // returns name in first level of url
   function url1(url){
-    var match = (url).match(/^\/([^\/]*)/);
+    var match = (url).match(/^\/([^/]*)/);
     return match && match[1] || '';
   }
 
@@ -216,7 +218,8 @@ module.exports = function helpers(generator) {
   hb.registerHelper('pageTree', function(groupBy, defaultGroup, frame) {
     if (!hbp(groupBy)) { frame = groupBy; groupBy = defaultGroup = null; }
 
-    return generator.renderPageTree(generator.home,
+    return generator.renderPageTree(
+      generator.home,
       renderOpts( { groupBy:groupBy, defaultGroup:defaultGroup } ));
   });
 
@@ -271,15 +274,15 @@ module.exports = function helpers(generator) {
 
   function githubText(page) {
     switch (pageLang(page)) {
-      case 'fr':    return 'Forkez-moi sur GitHub';
-      case 'he':    return 'צור פיצול בGitHub';
-      case 'id':    return 'Fork saya di GitHub';
-      case 'ko':    return 'GitHub에서 포크하기';
-      case 'pt-br': return 'Faça um fork no GitHub';
-      case 'pt-pt': return 'Faz fork no GitHub';
-      case 'tr':    return 'GitHub üstünde Fork edin';
-      case 'uk':    return 'скопіювати на GitHub';
-      default:      return 'Fork me on GitHub';
+    case 'fr':    return 'Forkez-moi sur GitHub';
+    case 'he':    return 'צור פיצול בGitHub';
+    case 'id':    return 'Fork saya di GitHub';
+    case 'ko':    return 'GitHub에서 포크하기';
+    case 'pt-br': return 'Faça um fork no GitHub';
+    case 'pt-pt': return 'Faz fork no GitHub';
+    case 'tr':    return 'GitHub üstünde Fork edin';
+    case 'uk':    return 'скопіювати на GitHub';
+    default:      return 'Fork me on GitHub';
     }
   }
 
@@ -305,7 +308,7 @@ module.exports = function helpers(generator) {
         '/#credit',
         '_!heart_ ' + credit,
         credit,
-        frame)
+        frame);
     }
   });
 
@@ -351,8 +354,8 @@ module.exports = function helpers(generator) {
     var pubRef = JSON.stringify( { href:this._href, relPath:relPath() } );
     return '<script>window.pubRef = ' + pubRef + ';</script>\n' +
       u.map(opts.injectJs, function(js) {
-      return '<script src="' + relPath() + js.path + '" ' + (js.async || '') + '></script>';
-    }).join('\n');
+        return '<script src="' + relPath() + js.path + '" ' + (js.async || '') + '></script>';
+      }).join('\n');
   });
 
   // turn text with line breaks into escaped html with <br>
@@ -374,10 +377,11 @@ module.exports = function helpers(generator) {
   hb.registerHelper('difftext', function() {
     var s = '';
     var context = '';
-    var page = ''
+    var page = '';
+    var m;
     u.each(this.diff, function(v) {
       // grab last page or fragment id before change
-      if (m = v.value.match(/\n\s*(page|fragment):([^\n]*\n)/g)) {
+      if ((m = v.value.match(/\n\s*(page|fragment):([^\n]*\n)/g))) {
         context = m.slice(-1)[0];
         if (!page) { page = u.trim(context); }
       }
@@ -405,8 +409,7 @@ module.exports = function helpers(generator) {
     if (faMarkdown && u.find(opts.pkgs, function(pkg) {
       return ('pub-pkg-font-awesome' === pkg.pkgName);
     })) {
-      return fragmentHtml( {_txt:faMarkdown,
-        _href:'/#synthetic' }, {noWrap:1});
+      return fragmentHtml( { _txt:faMarkdown, _href:'/#synthetic' }, {noWrap:1});
     }
     return /</.test(html) ? html :
       fragmentHtml( {_txt:html, _href:'/#synthetic' }, {noWrap:1});
@@ -485,4 +488,4 @@ module.exports = function helpers(generator) {
     return (generator.req && generator.req.user) || '';
   });
 
-}
+};

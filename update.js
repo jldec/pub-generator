@@ -8,7 +8,6 @@
 var debug = require('debug')('pub:generator');
 
 var u = require('pub-util');
-var assert = require('assert');
 
 var parseFragments = require('./parsefragments');
 var parseHeaders = require('./parseheaders');
@@ -101,7 +100,7 @@ module.exports = function update(generator) {
 
     // make sure the new fragment ends with \n
     if (!/(^|\n)$/.test(newFragment._txt)) {
-      newFragment._txt += '\n'
+      newFragment._txt += '\n';
     }
 
     // apply edit...
@@ -117,7 +116,7 @@ module.exports = function update(generator) {
 
       // make sure the old fragment ends with at least \n\n
       if (!/(^|\n\n)$/.test(oldFragment._txt)) {
-        oldFragment._txt += '\n\n'
+        oldFragment._txt += '\n\n';
       }
 
       if (!labelFragment(newFragment, 'update', source)) {
@@ -128,7 +127,7 @@ module.exports = function update(generator) {
 
 
       oldFragment._updatePending = newFragment; // signal existence of copy
-      newFragment._update = oldFragment // prevent additional copies
+      newFragment._update = oldFragment; // prevent additional copies
 
       diff._hdr = true; // signal reload
     }
@@ -211,12 +210,12 @@ module.exports = function update(generator) {
               return notify('error saving files, please check your internet connection');
             }
 
-            u.each(dirtyFiles, function(file, idx) {
+            u.each(dirtyFiles, function(file) {
 
               // no collision detection support with static saves (for now)
               file._oldtext = file.text;
 
-               // only mark as clean if unchanged while waiting for save
+              // only mark as clean if unchanged while waiting for save
               if (file._dirty === 2) { delete file._dirty; }
             });
 
@@ -246,7 +245,7 @@ module.exports = function update(generator) {
               // preserve for next update
               file._oldtext = savedFile.text;
 
-               // only mark as clean if unchanged while waiting for save
+              // only mark as clean if unchanged while waiting for save
               if (file._dirty === 2) { delete file._dirty; }
 
             });
@@ -284,7 +283,7 @@ module.exports = function update(generator) {
 
       filesToSave.push(serverFile); // side effect
 
-      delete clientFile._oldtext
+      delete clientFile._oldtext;
       return clientFile;
     });
 
@@ -345,10 +344,10 @@ module.exports = function update(generator) {
   }
 
   function notify() {
-    s = u.format.apply(this, arguments);
+    var s = u.format.apply(this, arguments);
     debug(s);
     generator.emit('notify', s);
     return s;
   }
 
-}
+};

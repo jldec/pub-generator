@@ -6,5 +6,5 @@ module.exports = function(generator) {
       return '/new/url' +
              (u.urlParams(url) ? u.urlParams(url) + '&test=1' : '?test=1');
     }
-  }
-}
+  };
+};

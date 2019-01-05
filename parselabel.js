@@ -29,7 +29,7 @@ module.exports = function parseLabel(label, isFileName, slugifyOpts) {
 
   label = u.trim(label);
 
-  var slugifyOpts = slugifyOpts || {}; // passed through to u.slugify
+  slugifyOpts = slugifyOpts || {}; // passed through to u.slugify
   var indexFile = 'indexFile' in slugifyOpts ? slugifyOpts.indexFile : 'index';
 
   var m;
@@ -46,24 +46,24 @@ module.exports = function parseLabel(label, isFileName, slugifyOpts) {
 
     // fragment is everything before that starting with the first '#'
     if ((m = label.indexOf('#')) >= 0) {
-      lbl._fragname = '#' + u.slugify(label.slice(m+1), slugifyOpts);;
+      lbl._fragname = '#' + u.slugify(label.slice(m+1), slugifyOpts);
       label = label.slice(0, m);
     }
   }
 
-  var segments = label.replace(/[\/\\]+/g,'/').split('/');
+  var segments = label.replace(/[/\\]+/g,'/').split('/');
   var rawname = u.trim(segments.pop());
 
   if (segments.length) {
     var cleanSegments = u.map(segments, function(segment) {
       return u.slugify(isFileName ? noPrefix(segment) : segment, slugifyOpts);
-    })
+    });
     cleanSegments.push(''); // put back the one we popped off
     lbl._path = cleanSegments.join('/');
   }
 
   var ext;
-  if (ext = path.extname(rawname)) {
+  if ((ext = path.extname(rawname))) {
     lbl._ext = ext;
     rawname = rawname.slice(0, -ext.length);
   }
@@ -80,14 +80,14 @@ module.exports = function parseLabel(label, isFileName, slugifyOpts) {
   }
 
   if (suffix) {
-    var suffixGrammar = /^(\w+)?(?:\s+([^\s\"]+))?/;
+    var suffixGrammar = /^(\w+)?(?:\s+([^\s"]+))?/;
     var s = u.trim(suffix.slice(1,-1)).match(suffixGrammar) || {};
     if (s[1]) { lbl.func  = s[1]; }
     if (s[2]) { lbl.ref   = s[2]; }
   }
 
   return lbl;
-}
+};
 
 // remove numeric file-sort prefix only if there is something after it
 function noPrefix(s) {

@@ -16,7 +16,7 @@ module.exports = function output(generator) {
 
   // add throttled output() function to each output
   u.each(opts.outputs, function(output) {
-    var fn = function() { outputOutput(output); }
+    var fn = function() { outputOutput(output); };
     output.output = u.throttleMs(fn, output.throttle || '10s');
   });
 
@@ -35,13 +35,13 @@ module.exports = function output(generator) {
     var results = [];
 
     u.each(names, function(name) {
-     var output = opts.output$[name];
-     if (output) {
-       output.output();
-       results.push(name);
-     } else {
-       results.push(log('outputPages unknown output ' + name));
-     }
+      var output = opts.output$[name];
+      if (output) {
+        output.output();
+        results.push(name);
+      } else {
+        results.push(log('outputPages unknown output ' + name));
+      }
     });
 
     return results;
@@ -78,7 +78,7 @@ module.exports = function output(generator) {
     u.each(generator.pages, function(page) {
       if (filterRe.test(page._href)) return;
       if (output.match && !output.match(page)) return;
-      var file = { page: page, path: page._href }
+      var file = { page: page, path: page._href };
       if (page['http-header']) { file['http-header'] = page['http-header']; }
       files.push(file);
     });
@@ -95,7 +95,7 @@ module.exports = function output(generator) {
         opts.relPaths     ? { relPath:u.relPath(file.path) } :
         opts.staticRoot   ? { relPath:opts.staticRoot } :
         {};
-      if (output.fqImages) { renderOpts.fqImages = output.fqImages };
+      if (output.fqImages) { renderOpts.fqImages = output.fqImages; }
       file.text = generator.renderDoc(file.page, renderOpts);
       delete file.page;
     });
@@ -103,7 +103,7 @@ module.exports = function output(generator) {
     output.src.put(files, function(err, result) {
       if (err) return cb(log(err));
       // TODO - improve log output with relative output.path
-      log('output %s %s generated files', output.path, result.length)
+      log('output %s %s generated files', output.path, result.length);
       cb();
     });
   }
@@ -124,17 +124,17 @@ module.exports = function output(generator) {
 
     // default output file extension is .html
     var extension = 'extension' in output ? (output.extension || '') : '.html';
-    var indexFile = output.indexFile || 'index'
+    var indexFile = output.indexFile || 'index';
 
     u.each(files, function(file) {
       if (dirMap[file.path]) {
         debug('index file for %s', file.path);
         file.path = path.join(file.path, indexFile);
       }
-      if (!/\.[^\/]*$/.test(file.path)) {
+      if (!/\.[^/]*$/.test(file.path)) {
         file.path = file.path + extension;
       }
     });
   }
 
-}
+};

@@ -199,7 +199,7 @@ function Generator(opts) {
       if (template) {
         if (t[tname]) { return log('WARNING: duplicate template %s in %s', tname, fragment._file.path); }
         t[tname] = generator.handlebars.compile(template); // todo: handle compile-time errors
-    }});
+      }});
     if (!t.default) {
       t.default = generator.handlebars.compile('{{{html}}}{{#each _fragments}}{{{html}}}{{/each}}');
       // log('auto-generated "default" template');
@@ -233,7 +233,6 @@ function Generator(opts) {
   function redirect(url) {
     var path = u.urlPath(url);
     var params = u.urlParams(url);
-    var pg;
 
     var pg = generator.aliase$[path];
     if (pg) return { status:301, url:pg._href + params };

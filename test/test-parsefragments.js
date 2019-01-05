@@ -5,14 +5,13 @@
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  *
 */
+/* eslint indent: "off" */
 
-var test = require('tape')
-var deepDiff = require('deep-diff').diff;
+var test = require('tape');
 
 var parseFragments = require('../parsefragments');
 var parseHeaders = require('../parseheaders');
 
-var u = require('pub-util');
 var inspect = require('util').inspect;
 
 var newstyle = [
@@ -217,7 +216,7 @@ function run(name, tst, opts){
 }
 
 function rebuild(fragments) {
-  s = '';
+  var s = '';
   fragments.forEach(function(fragment) { s += fragment._hdr + fragment._txt; });
   return s;
 }

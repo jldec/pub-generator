@@ -30,7 +30,7 @@ module.exports = function getsources(generator) {
 
       var append = ab.asyncAppend();
 
-     // try to get source files and report - don't bubble - errors
+      // try to get source files and report - don't bubble - errors
       getsourcefiles(source, function(err) {
         if (err) { log('ERROR: cannot load %s. %s', source.name, err.message); }
 
@@ -45,7 +45,7 @@ module.exports = function getsources(generator) {
           }
         }
 
-        append(null, source)
+        append(null, source);
       });
     });
 
@@ -83,7 +83,7 @@ module.exports = function getsources(generator) {
             }
           }
           log('cannot find target of update', update._hdr,
-            'from', update._file.path);
+              'from', update._file.path);
         });
       }
 
@@ -96,4 +96,4 @@ module.exports = function getsources(generator) {
     }
 
   }
-}
+};

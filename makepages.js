@@ -36,7 +36,7 @@ module.exports = function makepages(fragments, opts) {
   var page$ = {};   // hash for lookups
   var nopage$ = {}; // hash of unpublished pages (production only) to filter out fragments
 
-  u.each(fragments, function(fragment, idx) {
+  u.each(fragments, function(fragment) {
     if (/#/.test(fragment._href)) {
       processPageFragment(fragment);
     } else {
@@ -84,20 +84,20 @@ module.exports = function makepages(fragments, opts) {
       // opts.log('WARNING: makepages - synthesized folder page %s for %s', pHref, page._href);
     }
     else while (pHref && !parent) {
-      pHref = u.parentHref(pHref, opts.noTrailingSlash)
-      parent = page$[pHref]
+      pHref = u.parentHref(pHref, opts.noTrailingSlash);
+      parent = page$[pHref];
     }
     if (parent) {
       page._parent = parent;
       if (!parent._children) { parent._children = []; }
       var cnt = parent._children.push(page);
       if (cnt > 1) {
-        var prev =  parent._children[cnt-2]
+        var prev =  parent._children[cnt-2];
         page._prev = prev;
         prev._next = page;
       }
     }
-  };
+  }
 
   return pages;
-}
+};

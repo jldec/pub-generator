@@ -11,8 +11,6 @@
 var u        = require('pub-util');
 var marked   = require('marked');
 var esc      = u.escape;
-var unesc    = u.unescape;
-
 
 module.exports = function render(generator) {
 
@@ -90,7 +88,7 @@ module.exports = function render(generator) {
     try { out = t(fragment); }
     catch(err) {
       var msg = u.format('Error rendering %s\n\ntemplate: %s\n',
-                          fragment._href, templateName, err.stack || err);
+                         fragment._href, templateName, err.stack || err);
       log(msg);
       out = opts.production ? '' : '<pre>' + esc(msg) + '</pre>';
     }
@@ -104,7 +102,7 @@ module.exports = function render(generator) {
   // also supports scenarios where there is no layout or no doc template
   function renderDoc(page, renderOpts) {
     if (generator.renderOpts !== defaultRenderOpts) return log(new Error('Recursive call to renderDoc'));
-    var rOpts = generator.renderOpts = function() { return u.assign({}, defaultRenderOpts(page), renderOpts) };
+    var rOpts = generator.renderOpts = function() { return u.assign({}, defaultRenderOpts(page), renderOpts); };
     var out = renderTemplate(page, docTemplate(page), rOpts()); // synchronous
     generator.renderOpts = defaultRenderOpts;
     return out;
@@ -166,7 +164,7 @@ module.exports = function render(generator) {
     if (opts && opts.noWrap) return html;
     var href = (fragment && esc(fragment._href)) || '';
     return '<div data-render-html="' + href + '">' + html + '</div>';
-  };
+  }
 
 
   // renderLink
@@ -256,10 +254,10 @@ module.exports = function render(generator) {
     var b = [];
     var m;
     a.forEach(function(w) {
-      if (m = w.match(/^(\d+)x(\d+)$/)) return (out += ' width="' + m[1] + '" height="' + m[2] + '"');
-      if (m = w.match(/^(\w+)=(\w+)$/)) return (out += ' ' + m[1] + '="' + m[2] + '"');
+      if ((m = w.match(/^(\d+)x(\d+)$/))) return (out += ' width="' + m[1] + '" height="' + m[2] + '"');
+      if ((m = w.match(/^(\w+)=(\w+)$/))) return (out += ' ' + m[1] + '="' + m[2] + '"');
       if (w) return b.push(w);
-    })
+    });
     title = b.join(' ');
 
     if (title) {
@@ -276,12 +274,12 @@ module.exports = function render(generator) {
 
   // Link rewriting logic - shared by renderLink and renderImage and hb.fixPath
   function rewriteLink(href, renderOpts) {
-    var imgRoute = renderOpts.fqImages && (renderOpts.fqImages.route || '/images/')
+    var imgRoute = renderOpts.fqImages && (renderOpts.fqImages.route || '/images/');
     var imgPrefix = renderOpts.fqImages && renderOpts.fqImages.url;
     var linkPrefix = renderOpts.fqLinks || renderOpts.relPath;
 
     if (imgPrefix && u.startsWith(href, imgRoute)) { href = imgPrefix + href; }
-    else if (linkPrefix && /^\/([^\/]|$)/.test(href)) { href = linkPrefix + href; }
+    else if (linkPrefix && /^\/([^/]|$)/.test(href)) { href = linkPrefix + href; }
 
     return href;
   }
@@ -348,10 +346,10 @@ module.exports = function render(generator) {
     var baseRenderImage = generator.renderer.image;
 
     generator.renderer.image = function(href, title, text) {
-      if (!images[href]) { a = images[href] = []; }
+      if (!images[href]) { images[href] = []; }
       images[href].push(currentPage._href);
       return baseRenderImage(href, title, text);
-    }
+    };
 
     u.each(generator.pages, function(pg) {
       currentPage=pg;
@@ -360,4 +358,4 @@ module.exports = function render(generator) {
 
     generator.renderer.image = baseRenderImage;
   }
-}
+};

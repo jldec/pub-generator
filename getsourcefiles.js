@@ -4,8 +4,6 @@
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
 **/
 
-var u = require('pub-util');
-
 module.exports = function getSourceFiles(source, cb) {
 
   // test and set this atomically
@@ -25,6 +23,6 @@ module.exports = function getSourceFiles(source, cb) {
     if (err) return cb(err);
     source.files = files;
     cb(null, files);
-  })
+  });
 
-}
+};

@@ -15,19 +15,17 @@
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
 **/
 
-var u = require('pub-util')
-var Fragment = require('./fragment')
+var u = require('pub-util');
 var parseFragments = require('./parsefragments');
 var parseHeaders = require('./parseheaders');
 var parseLabel = require('./parselabel');
 
-var path = require('path');
 
 module.exports = function parsefiles(generator) {
   generator = generator || {};
   generator.parseFilesPUB = parseFilesPUB;
   return generator;
-}
+};
 
 function parseFilesPUB(source, opts) {
 
@@ -99,7 +97,7 @@ function parseFilesPUB(source, opts) {
         // only #fragments can inherit name, path and extension
         if (lbl._fragname) {
           if (!lbl._name && !lbl._path && prevLabel._name) { lbl._name = prevLabel._name; }
-          lbl._path = lbl._path || prevLabel._path
+          lbl._path = lbl._path || prevLabel._path;
           lbl._ext  = lbl._ext  || prevLabel._ext;
         }
       }
@@ -133,7 +131,7 @@ function parseFilesPUB(source, opts) {
 
       // show visible fragments
       if (!lbl.func || (lbl.func === 'draft' && !opts.production)) {
-        source.fragments.push(fragment)
+        source.fragments.push(fragment);
       }
 
       if (lbl.func === 'draft') {
@@ -173,6 +171,6 @@ function parseFilesPUB(source, opts) {
   !source.snapshots.length && delete source.snapshots;
   !source.drafts.length    && delete source.drafts;
 
-  return source
+  return source;
 
 }

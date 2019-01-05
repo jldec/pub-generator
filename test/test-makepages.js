@@ -3,8 +3,9 @@
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  * uses deep-diff so that errors produce something useful
 **/
+/* eslint indent: "off" */
 
-var test = require('tape')
+var test = require('tape');
 var deepDiff = require('deep-diff').diff;
 
 var u = require('pub-util');
@@ -128,6 +129,9 @@ var pages = [
 }
 ];
 
+// NOTE: test ignores commented structure below - could not make deep-diff work properly
+
+/*
 var orphans = [
 { _href: '/pagex#orphan-fragment-1',
   _file: files[5],
@@ -135,8 +139,6 @@ var orphans = [
   _txt: 'This fragment is an orphan without a parent page\n\n' }
 ];
 
-// NOTE: test ignores commented structure below - could not make deep-diff work properly
-/*
 files[0].fragments = [pages[0],
                       pages[0]._fragments[0]];
 
@@ -219,7 +221,7 @@ pages[6]._parent = pages[0];
 
 pages[7]._parent = pages[6];
 */
-test("read md directory tree and make pages", function(t) {
+test('read md directory tree and make pages', function(t) {
 
   t.timeoutAfter(10000);
 

@@ -5,10 +5,7 @@
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  *
 **/
-var test = require('tape')
-
-var u = require('pub-util');
-var inspect = require('util').inspect;
+var test = require('tape');
 
 var tests = [
 
@@ -78,7 +75,7 @@ tests.forEach(function run(tst) {
 
         t.end();
       });
-    })
+    });
   });
 });
 

@@ -15,4 +15,4 @@ function Fragment(hdr, txt) {
 
 Fragment.prototype.serialize = function serialize() {
   return this._hdr + this._txt;
-}
+};

@@ -17,7 +17,7 @@ module.exports = function serialize(generator) {
   generator.recreateFileText       = recreateFileText;
 
   return generator;
-}
+};
 
 function serializeFiles(files) {
   return u.map(files, serializeFile);

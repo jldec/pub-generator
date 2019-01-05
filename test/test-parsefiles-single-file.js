@@ -3,8 +3,9 @@
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  *
 **/
+/* eslint indent: "off" */
 
-var test = require('tape')
+var test = require('tape');
 var deepDiff = require('deep-diff').diff;
 
 var u = require('pub-util');
@@ -31,7 +32,6 @@ var fragments = [
 
 { _hdr: '---- /people/david-cook ----\nname: David\ntemplate: bio\nbirthday: 1-1-1989\nnote: this is a markdown fragment\n\n',
   _txt: '# David Cook\n- engineer\n\n',
-  name: 'David Cook',
   _file: file,
   name: 'David',
   template: 'bio',
@@ -139,7 +139,7 @@ var fragments = [
   _href: '/robots.txt' }
 ];
 
-snapshots = [
+var snapshots = [
   { _href: '',
     _hdr: '---- (snapshot /bar - 1/1/2011-14:33) ----\nname: Bar some time ago\n\n',
     _txt: 'text\n\n',

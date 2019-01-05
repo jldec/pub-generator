@@ -45,4 +45,4 @@ module.exports = function parseHeaders(fragment, opts) {
   }
 
   return fragment;
-}
+};

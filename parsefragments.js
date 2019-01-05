@@ -57,11 +57,11 @@ module.exports = function parseFragments(srctext, opts) {
   var fragments = [];   // array of fragments to return
 
   var currentFragment = new Fragment();
-  var fragmentCount = fragments.push(currentFragment);
+  fragments.push(currentFragment);
 
   while (srctext) {
     if (opts.fragmentDelim) {
-      if (match = (delimiterGrammar.exec(srctext))) {
+      if ((match = (delimiterGrammar.exec(srctext)))) {
         processFragment(match); // consume some srctext
         continue;
       }
@@ -83,7 +83,7 @@ module.exports = function parseFragments(srctext, opts) {
 
     if (pos || hpos) {
       currentFragment = new Fragment();
-      fragmentCount = fragments.push(currentFragment);
+      fragments.push(currentFragment);
     }
 
     currentFragment._hdr = noHeaders ? '' : match[0];
@@ -96,4 +96,4 @@ module.exports = function parseFragments(srctext, opts) {
     pos += hpos + hlen;
   }
 
-}
+};
