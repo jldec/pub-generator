@@ -8,7 +8,7 @@
     "debug": "^4.1.1",
     "handlebars": "^4.0.12",
     "marked": "^0.6.0",
-    "marked-forms": "v2.0.0",
+    "marked-forms": "^2.0.0",
     "pub-resolve-opts": "^1.6.18",
     "pub-src-http": "^1.0.9",
     "pub-util": "^3.0.3"
