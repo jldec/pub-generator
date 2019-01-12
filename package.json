@@ -1,6 +1,6 @@
 {
   "name": "pub-generator",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "markdown/handlebars site generator - runs in node or browser",
   "main": "generator.js",
   "dependencies": {
@@ -9,7 +9,7 @@
     "handlebars": "^4.0.12",
     "marked": "^0.6.0",
     "marked-forms": "^2.0.0",
-    "pub-resolve-opts": "^1.6.20",
+    "pub-resolve-opts": "^1.7.0",
     "pub-src-http": "^1.0.9",
     "pub-util": "^3.0.3"
   },
