@@ -300,7 +300,7 @@ module.exports = function helpers(generator) {
     if (opts.credit || !('credit' in opts)) {
       var credit = opts.credit ||
         'powered by ' +
-        '[pub-server](http://jldec.github.io/pub-doc/)' +
+        '[pub-server](https://jldec.github.io/pub-doc/)' +
         (opts.theme ? ' and [' + opts.theme.pkgName + '](' +
           hb.githubUrl(opts.theme.pkgJson) + ')' : '');
 

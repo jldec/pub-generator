@@ -13,8 +13,8 @@
  * future maybe:
  * 1. JSON values
  * 2. match html5 data values (auto-lowercase? eat-dashes? in names to match dataset)
- *    http://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes
- *    interop with http://api.jquery.com/data/#data-html5
+ *    https://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes
+ *    interop with https://api.jquery.com/data/#data-html5
  *
  * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
  */
