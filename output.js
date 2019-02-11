@@ -8,15 +8,15 @@
 var debug = require('debug')('pub:generator:output');
 var u = require('pub-util');
 var path = require('path');
+var asyncbuilder = require('asyncbuilder');
 
 module.exports = function output(generator) {
 
   var opts = generator.opts;
-  var log = opts.log;
 
   // add throttled output() function to each output
   u.each(opts.outputs, function(output) {
-    var fn = function() { outputOutput(output); };
+    var fn = function(cb) { outputOutput(output, cb); };
     output.output = u.throttleMs(fn, output.throttle || '10s');
   });
 
@@ -27,24 +27,25 @@ module.exports = function output(generator) {
   //--//--//--//--//--//--//--//--//--//
 
   // trigger specified (or all) outputs
-  function outputPages(names) {
+  function outputPages(names, cb) {
+    if (typeof names === 'function') { cb = names; names = ''; }
+ 
     names = u.isArray(names) ? names :
            names ? [names] :
            u.keys(opts.output$);
 
-    var results = [];
+    var ab = asyncbuilder(cb);
 
     u.each(names, function(name) {
       var output = opts.output$[name];
       if (output) {
-        output.output();
-        results.push(name);
+        output.output(ab.asyncAppend());
       } else {
-        results.push(log('outputPages unknown output ' + name));
+        ab.append('outputPages called with unknown output: ' + name);
       }
     });
 
-    return results;
+    ab.complete();
   }
 
 
@@ -60,7 +61,7 @@ module.exports = function output(generator) {
   function outputOutput(output, cb) {
     cb = u.maybe(cb);
 
-    if (!output) return cb(log('no output specified'));
+    if (!output) return cb(new Error('no output specified'));
 
     debug('output %s', output.name);
     var files = output.files = [];
@@ -100,12 +101,7 @@ module.exports = function output(generator) {
       delete file.page;
     });
 
-    output.src.put(files, function(err, result) {
-      if (err) return cb(log(err));
-      // TODO - improve log output with relative output.path
-      log('output %s %s generated files', output.path, result.length);
-      cb();
-    });
+    output.src.put(files, cb);
   }
 
   // convert file-paths to 'index' files where necessary

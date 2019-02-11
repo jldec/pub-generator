@@ -136,12 +136,17 @@ function Generator(opts) {
     generator.emit('init-timers', isServer);
   }
 
-  // disconnect all sources
+  // disconnect all sources and cancel all throttled functions
   function unload() {
     u.each(opts.sources, function(source) {
       if (source.src && source.src.unref) { source.src.unref(); }
       if (source.cache && source.cache.unref) { source.cache.unref(); }
     });
+    u.each(opts.outputs, function(output) {
+      if (output.output && output.output.cancel) { output.output.cancel(); }
+    });
+    if (generator.reload && generator.reload.cancel) { generator.reload.cancel(); }
+    if (generator.clientSave && generator.clientSave.cancel) { generator.clientSave.cancel(); }
   }
 
   function compilePages(pageFragments) {
