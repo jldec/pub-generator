@@ -7,7 +7,7 @@
 
 var debug = require('debug')('pub:generator:output');
 var u = require('pub-util');
-var path = require('path');
+var path = require('path').posix;
 var asyncbuilder = require('asyncbuilder');
 
 module.exports = function output(generator) {
@@ -29,7 +29,7 @@ module.exports = function output(generator) {
   // trigger specified (or all) outputs
   function outputPages(names, cb) {
     if (typeof names === 'function') { cb = names; names = ''; }
- 
+
     names = u.isArray(names) ? names :
            names ? [names] :
            u.keys(opts.output$);

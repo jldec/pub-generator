@@ -1,4 +1,5 @@
 # pub-generator
+[![Azure Build Status](https://dev.azure.com/jldec/pub-generator/_apis/build/status/jldec.pub-generator?branchName=master)](https://dev.azure.com/jldec/pub-generator/_build/latest?definitionId=1&branchName=master)
 [![Build Status](https://api.travis-ci.org/jldec/pub-generator.svg?branch=master)](https://travis-ci.org/jldec/pub-generator)
 
 - markdown/handlebars site generator

@@ -23,7 +23,7 @@
 **/
 
 var u = require('pub-util');
-var path = require('path');
+var path = require('path').posix;
 
 module.exports = function parseLabel(label, isFileName, slugifyOpts) {
 
