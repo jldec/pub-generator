@@ -7,7 +7,9 @@
 
 var debug = require('debug')('pub:generator:output');
 var u = require('pub-util');
-var path = require('path').posix;
+var path = require('path');
+var ppath = path.posix || path; // in browser path is posix
+
 var asyncbuilder = require('asyncbuilder');
 
 module.exports = function output(generator) {
@@ -110,10 +112,10 @@ module.exports = function output(generator) {
     // map directories to use for index files
     var dirMap = {};
     u.each(files, function(file) {
-      dirMap[path.dirname(file.path)] = true;
+      dirMap[ppath.dirname(file.path)] = true;
 
       // edge case - treat /foo/ as directory too
-      if (/\/$/.test(file.path) && path.dirname(file.path) !== file.path) {
+      if (/\/$/.test(file.path) && ppath.dirname(file.path) !== file.path) {
         dirMap[file.path] = true;
       }
     });
@@ -125,7 +127,7 @@ module.exports = function output(generator) {
     u.each(files, function(file) {
       if (dirMap[file.path]) {
         debug('index file for %s', file.path);
-        file.path = path.join(file.path, indexFile);
+        file.path = ppath.join(file.path, indexFile);
       }
       if (!/\.[^/]*$/.test(file.path)) {
         file.path = file.path + extension;

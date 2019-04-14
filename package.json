@@ -1,22 +1,22 @@
 {
   "name": "pub-generator",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "markdown/handlebars site generator - runs in node or browser",
   "main": "generator.js",
   "dependencies": {
     "asyncbuilder": "^1.0.5",
     "debug": "^4.1.1",
-    "handlebars": "^4.1.1",
+    "handlebars": "^4.1.2",
     "marked": "^0.6.2",
     "marked-forms": "^2.0.2",
-    "pub-resolve-opts": "^1.7.3",
+    "pub-resolve-opts": "^1.7.4",
     "pub-src-http": "^1.0.11",
-    "pub-util": "^3.0.6"
+    "pub-util": "^3.0.7"
   },
   "devDependencies": {
     "deep-diff": "^1.0.2",
     "eslint": "^5.16.0",
-    "pub-src-fs": "^2.0.6",
+    "pub-src-fs": "^2.0.7",
     "tape": "^4.10.1"
   },
   "files": [

@@ -23,7 +23,8 @@
 **/
 
 var u = require('pub-util');
-var path = require('path').posix;
+var path = require('path');
+var ppath = path.posix || path; // in browser path is posix
 
 module.exports = function parseLabel(label, isFileName, slugifyOpts) {
 
@@ -63,7 +64,7 @@ module.exports = function parseLabel(label, isFileName, slugifyOpts) {
   }
 
   var ext;
-  if ((ext = path.extname(rawname))) {
+  if ((ext = ppath.extname(rawname))) {
     lbl._ext = ext;
     rawname = rawname.slice(0, -ext.length);
   }
