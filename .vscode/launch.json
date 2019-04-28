@@ -31,5 +31,12 @@
       "name": "test-parsefiles-single-file.js",
       "program": "${workspaceFolder}/test/test-parsefiles-single-file.js",
       "cwd": "${workspaceRoot}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "test-parsefragments.js",
+      "program": "${workspaceFolder}/test/test-parsefragments.js",
+      "cwd": "${workspaceRoot}"
     }  ]
 }

@@ -47,9 +47,9 @@ module.exports = function parseFragments(srctext, opts) {
     headerDelim = 'headerDelim' in opts ? u.escapeRegExp(opts.headerDelim) : '';
 
     delimiterGrammar = new RegExp(
-      '^' + leftDelim + '(.*)' + rightDelim + '$' +  // delimiter line
-      '[\\s\\S]*?' +                                 // non-hungry multi-line
-      '^' + headerDelim + '$\\n?', 'm');             // blank line
+      '^' + leftDelim + '(.*)' + rightDelim + '$(?:\\r\\n|\\n)' +  // delimiter line
+      '(?:^.*$(?:\\r\\n|\\n))*?' +                                 // non-hungry multi-line
+      '^' + headerDelim + '$(?:\\r\\n|\\n)?', 'm');                // blank or end-of-header line
   }
 
   var match;
