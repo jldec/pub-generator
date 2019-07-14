@@ -48,7 +48,7 @@ function parseFilesPUB(source, opts) {
     // if file.text exists, parsing file with new text e.g. from serverSave()
     // else, processing possibly-modified fragments e.g. from clientUpdateFragmentText()
     // have to parseFragments() in both cases
-    file.fragments = file.hasOwnProperty('text') ?
+    file.fragments = Object.prototype.hasOwnProperty.call(file,'text') ?
       parseFragments(file.text, source) :
       parseFragments(
         u.map(file.fragments, function(fragment) {

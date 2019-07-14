@@ -75,7 +75,7 @@ module.exports = function update(generator) {
     if (!source.writable) return notify('this text cannot be modified');
 
     // capture file._oldtext on first update - see also clientSave()
-    if (!file.hasOwnProperty('_oldtext')) {
+    if (!Object.prototype.hasOwnProperty.call(file,'_oldtext')) {
       file._oldtext = generator.serializeTextFragments(file);
     }
 

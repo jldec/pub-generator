@@ -1,23 +1,23 @@
 {
   "name": "pub-generator",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "markdown/handlebars site generator - runs in node or browser",
   "main": "generator.js",
   "dependencies": {
-    "asyncbuilder": "^1.0.5",
+    "asyncbuilder": "^1.0.6",
     "debug": "^4.1.1",
     "handlebars": "^4.1.2",
-    "marked": "^0.6.2",
-    "marked-forms": "^2.0.2",
-    "pub-resolve-opts": "^1.7.4",
-    "pub-src-http": "^1.0.11",
-    "pub-util": "^3.0.7"
+    "marked": "^0.7.0",
+    "marked-forms": "^2.1.0",
+    "pub-resolve-opts": "^1.7.5",
+    "pub-src-http": "^1.0.12",
+    "pub-util": "^3.0.8"
   },
   "devDependencies": {
     "deep-diff": "^1.0.2",
-    "eslint": "^5.16.0",
-    "pub-src-fs": "^2.0.7",
-    "tape": "^4.10.1"
+    "eslint": "^6.0.1",
+    "pub-src-fs": "^2.0.8",
+    "tape": "^4.11.0"
   },
   "files": [
     "fragment.js",
