@@ -1,23 +1,23 @@
 {
   "name": "pub-generator",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "markdown/handlebars site generator - runs in node or browser",
   "main": "generator.js",
   "dependencies": {
-    "asyncbuilder": "^1.0.6",
+    "asyncbuilder": "^1.0.7",
     "debug": "^4.1.1",
-    "handlebars": "^4.1.2",
-    "marked": "^0.7.0",
-    "marked-forms": "^2.1.0",
-    "pub-resolve-opts": "^1.7.5",
-    "pub-src-http": "^1.0.12",
-    "pub-util": "^3.0.8"
+    "handlebars": "^4.7.3",
+    "marked": "^0.8.0",
+    "marked-forms": "^2.2.1",
+    "pub-resolve-opts": "^1.7.6",
+    "pub-src-http": "^1.1.0",
+    "pub-util": "^3.0.9"
   },
   "devDependencies": {
     "deep-diff": "^1.0.2",
-    "eslint": "^6.0.1",
-    "pub-src-fs": "^2.0.8",
-    "tape": "^4.11.0"
+    "eslint": "^6.8.0",
+    "pub-src-fs": "^2.0.9",
+    "tape": "^4.13.2"
   },
   "files": [
     "fragment.js",
@@ -36,13 +36,12 @@
     "update.js"
   ],
   "scripts": {
-    "test": "tape test/*.js",
-    "lint": "eslint ."
+    "test": "eslint . && tape test/*.js"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/jldec/pub-generator.git"
   },
-  "author": "jurgen leschner",
+  "author": "Jürgen Leschner",
   "license": "MIT"
 }

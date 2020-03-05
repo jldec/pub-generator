@@ -7,6 +7,13 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "test-render.js",
+      "program": "${workspaceFolder}/test/test-render.js",
+      "cwd": "${workspaceRoot}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "test-makepages.js",
       "program": "${workspaceFolder}/test/test-makepages.js",
       "cwd": "${workspaceRoot}"

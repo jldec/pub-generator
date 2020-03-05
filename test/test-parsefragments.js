@@ -2,7 +2,7 @@
  * test-parsefragments
  *
  * TODO: make tests more complete, and easier to interpret
- * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
+ * copyright 2015-2020, Jürgen Leschner - github.com/jldec - MIT license
  *
 */
 /* eslint indent: "off" */

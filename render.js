@@ -4,7 +4,7 @@
  * pub-generator mixin
  * provides functions for rendering HTML using handlebars templates and marked
  *
- * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
+ * copyright 2015-2020, Jürgen Leschner - github.com/jldec - MIT license
  *
 **/
 
@@ -192,11 +192,11 @@ module.exports = function render(generator) {
     var target = '';
 
     if (opts.linkNewWindow && /^http/i.test(href)) {
-      target = ' target="_blank"';
+      target = ' target="_blank" rel="noopener"';
     }
     else if (/\^$/.test(u.str(title))) {
       title = title.slice(0,-1);
-      target = ' target="_blank"';
+      target = ' target="_blank" rel="noopener"';
     }
 
     href = rewriteLink(href, renderOpts);

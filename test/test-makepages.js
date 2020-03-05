@@ -1,6 +1,6 @@
 /**
  * test-makepages.js
- * copyright 2015-2019, Jurgen Leschner - github.com/jldec - MIT license
+ * copyright 2015-2020, Jürgen Leschner - github.com/jldec - MIT license
  * uses deep-diff so that errors produce something useful
 **/
 /* eslint indent: "off" */
