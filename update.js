@@ -23,7 +23,7 @@ module.exports = function update(generator) {
 
   generator.clientUpdateFragmentText = clientUpdateFragmentText;
   generator.clientSaveHoldText       = clientSaveHoldText;
-  generator.clientSave               = u.throttleMs(clientSave, (opts.throttleClientSave || '5s'));
+  generator.clientSave               = u.throttle(clientSave, u.ms(opts.throttleClientSave || '5s'), {leading:true, trailing:true});
   generator.clientSaveUnThrottled    = clientSave;
   generator.serverSave               = serverSave;
   generator.flushCaches              = flushCaches;
