@@ -10,6 +10,7 @@
 
 var u        = require('pub-util');
 var marked   = require('marked');
+var markedForms = require('marked-forms');
 var esc      = u.escape;
 
 module.exports = function render(generator) {
@@ -17,22 +18,18 @@ module.exports = function render(generator) {
   var opts = generator.opts;
   var log = opts.log;
 
-  // configure markdown rendering
-  var renderer = generator.renderer = new marked.Renderer(defaultRenderOpts());
-  renderer.link = renderLink;
-  renderer.image = renderImage;
-  require('marked-forms')(renderer, marked);
+  marked.use( { renderer: { link: renderLink, image: renderImage } } );
+  marked.use(markedForms());
 
   function defaultRenderOpts(docPage) {
     var o = {
-      renderer:      generator.renderer,
-
       // staticRoot is automatically set in static-hosted editor
       fqLinks:       opts.fqLinks || opts.staticRoot,
 
       // use of `pub -r .` or opts.relPaths is not recommended - will not work in SPA/editor
       relPath:       (opts.relPaths && docPage) ? u.relPath(docPage._href) : opts.staticRoot,
 
+      mangle:        opts.mangleEmails || false, // default to non-mangled autolinked emails
       fqImages:      opts.fqImages,
       linkNewWindow: opts.linkNewWindow,
       highlight:     opts.highlight };
@@ -49,6 +46,7 @@ module.exports = function render(generator) {
   }
 
   generator.renderOpts      = defaultRenderOpts;  // TODO: revisit (cannot renderDoc with staticRoot from editor)
+  generator.marked          = marked;
 
   generator.renderMarkdown  = renderMarkdown;  // low level markdown renderer
   generator.renderTemplate  = renderTemplate;  // low level template renderer (used by renderDoc/Layout/Page)
@@ -66,9 +64,6 @@ module.exports = function render(generator) {
   generator.rewriteLink     = rewriteLink;     // link rewriter for relPaths etc.
 
   generator.renderPageTree  = renderPageTree;  // render page hierarchy starting at /
-
-  generator.parseLinks      = parseLinks;      // parse links from fragment._txt
-  generator.inventory       = inventory;       // scan all pages and compile inventory of images and links (!production)
 
   return;
 
@@ -265,7 +260,7 @@ module.exports = function render(generator) {
     }
 
     out += iframe ? '></iframe>' :
-           renderer.options.xhtml ? '/>' :
+           renderOpts.xhtml ? '/>' :
            '>';
 
     return out;
@@ -319,43 +314,5 @@ module.exports = function render(generator) {
       });
       return out + '\n</ul>';
     }
-  }
-
-  // parse links from fragment text as a side effect of rendering with marked
-  // returns an array of {href,title,text} (not fully qualified) usable for lookups in page$
-  function parseLinks(fragment) {
-    if (!fragment || !fragment._txt) return;
-    var links = [];
-    var renderer = generator.renderer;
-    var oldLinkFn = renderer.link;
-    renderer.link = function(href, title, text) {
-      links.push( { href:href, title:title, text:text } );
-      return ''; // don't care about actual rendered result
-    };
-    marked(fragment._txt, {renderer:renderer});
-    renderer.link = oldLinkFn; // revert
-    return links;
-  }
-
-  // similar to parseLinks
-  // temporarily hooks generator renderer to compile images and links for all pages
-  function inventory() {
-    var images = generator.images = {};
-    var currentPage;
-
-    var baseRenderImage = generator.renderer.image;
-
-    generator.renderer.image = function(href, title, text) {
-      if (!images[href]) { images[href] = []; }
-      images[href].push(currentPage._href);
-      return baseRenderImage(href, title, text);
-    };
-
-    u.each(generator.pages, function(pg) {
-      currentPage=pg;
-      renderDoc(pg);
-    });
-
-    generator.renderer.image = baseRenderImage;
   }
 };

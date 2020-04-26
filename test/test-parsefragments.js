@@ -398,7 +398,7 @@ function run(name, tst, opts){
     var actual = parseFragments(tst.in, opts);
     actual.forEach(function(fragment) { parseHeaders(fragment); });
     // console.log(actual);
-    t.deepEqual(actual, tst.out, 'match expected');
+    t.deepLooseEqual(actual, tst.out, 'match expected');
     t.equal(rebuild(tst.out), tst.in, 'rebuild from fragments');
     t.end();
   });

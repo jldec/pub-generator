@@ -64,7 +64,7 @@ function Generator(opts) {
 
     // other modules
     Fragment:          require('./fragment'),
-    handlebars:        require('@jldec/handlebars').create(), // handlebars instance
+    handlebars:        require('handlebars').create(), // handlebars instance
     util:              u                               // lighten browserified plugins
 
   } );

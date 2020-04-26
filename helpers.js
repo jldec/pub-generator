@@ -227,11 +227,6 @@ module.exports = function helpers(generator) {
     return u.map(generator.templatePages$[tname], frame.fn).join('');
   });
 
-  hb.registerHelper('eachLinkIn', function(ref, frame) {
-    var fragment = resolve(ref, this);
-    return u.map(generator.parseLinks(fragment), frame.fn).join('');
-  });
-
   // resolve references to fragments directly or via href string
   function resolve(ref, context) {
     if (typeof ref !== 'string') return ref;

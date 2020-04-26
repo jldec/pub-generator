@@ -53,7 +53,26 @@ hello world
       text: '[??](input 1)'
     },
     result: '<div data-render-html="/form-1"><p>\n<input name="input 1" id="input-1"></p>\n</div>'
+  },
+
+  { name: 'markdown vimeo image link',
+    page: '/image-1',
+    file: {
+      path: '/Image_1.md',
+      text: '![](/vimeo/12345)'
+    },
+    result: '<div data-render-html="/image-1"><p><iframe src="//player.vimeo.com/video/12345" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></p>\n</div>'
+  },
+
+  { name: 'markdown off-site link',
+    page: '/linky-1',
+    file: {
+      path: '/linky_1.md',
+      text: '[Another site](https://www.abc.com/ "^")'
+    },
+    result: '<div data-render-html="/linky-1"><p><a href="https://www.abc.com/" target="_blank" rel="noopener">Another site</a></p>\n</div>'
   }
+
 
 ];
 
