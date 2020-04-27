@@ -1,5 +1,5 @@
 # pub-generator
-![CI](https://github.com/jldec/generator/workflows/CI/badge.svg)
+![CI](https://github.com/jldec/pub-generator/workflows/CI/badge.svg)
 
 - markdown/handlebars site generator
 - runs in node as part of pub-server, or in browser e.g. inside `pub-pkg-editor`
