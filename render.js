@@ -64,6 +64,7 @@ module.exports = function render(generator) {
   generator.rewriteLink     = rewriteLink;     // link rewriter for relPaths etc.
 
   generator.renderPageTree  = renderPageTree;  // render page hierarchy starting at /
+  generator.parseLinks      = parseLinks;      // parse links from item._txt
 
   return;
 
@@ -119,7 +120,7 @@ module.exports = function render(generator) {
   function renderPage(page) {
     var template = pageTemplate(page);
     var html = renderTemplate(page, template);
-    return '<div data-render-page="' + esc(template) + '">' + html + '</div>';
+    return '<div data-render-page="' + esc(page._href) + '">' + html + '</div>';
   }
 
   // return name of document template for a page
@@ -314,5 +315,21 @@ module.exports = function render(generator) {
       });
       return out + '\n</ul>';
     }
+  }
+
+  // parse links from item text as a side effect of rendering with marked
+  // returns an array of hrefs (not fully qualified) usable for lookups in page$
+  // does not use pages.renderer with extended images, forms etc.
+  /*eslint no-unused-vars: "off"*/
+  function parseLinks(item) {
+    if (!item || !item._txt) return;
+    var links = [];
+    var renderer = new marked.Renderer();
+    renderer.link = function(href, title, text) {
+      links.push(href);
+      return ''; // don't care about actual rendered result
+    };
+    marked(item._txt, {renderer:renderer});
+    return links;
   }
 };
