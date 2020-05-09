@@ -120,7 +120,7 @@ module.exports = function render(generator) {
   function renderPage(page) {
     var template = pageTemplate(page);
     var html = renderTemplate(page, template);
-    return '<div data-render-page="' + esc(page._href) + '">' + html + '</div>';
+    return '<div data-render-page="' + esc(opts.renderPageOverride ? template : page._href) + '">' + html + '</div>';
   }
 
   // return name of document template for a page

@@ -146,7 +146,7 @@ var tests =
     path: '/index.md',
     text: 'hello world\n\n---- /main-layout.hbs ----\n\n<div class="main-layout">test<br>{{{renderPage}}}</div>'
   },
-  result: '<div class="main-layout">test<br><div data-render-page="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
+  result: '<div class="main-layout">test<br><div data-render-page="/"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
 },
 
 { name: 'simple page and doc-layout and main-layout templates',
@@ -158,7 +158,7 @@ var tests =
   },
   result: '<div class="doc-layout">outer layout<br>' +
             '<div data-render-layout="main-layout"><div class="main-layout">inner layout<br>' +
-              '<div data-render-page="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>\n\n' +
+              '<div data-render-page="/"><div data-render-html="/"><p>hello world</p>\n</div></div></div>\n\n' +
             '</div>' +
           '</div>'
 },
@@ -169,7 +169,7 @@ var tests =
     path: '/index.md',
     text: 'hello world\n\n---- /doc-layout.hbs ----\n\n<div class="doc-layout">test<br>{{{renderPage}}}</div>'
   },
-  result: '<div class="doc-layout">test<br><div data-render-page="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
+  result: '<div class="doc-layout">test<br><div data-render-page="/"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
 },
 
 { name: 'simple page and a doc-layout template with a renderLayout - will break editor',
