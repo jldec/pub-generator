@@ -19,7 +19,7 @@ module.exports = function render(generator) {
   var log = opts.log;
 
   marked.use( { renderer: { link: renderLink, image: renderImage } } );
-  marked.use(markedForms());
+  marked.use(markedForms( { allowSpacesInLinks: opts.allowSpacesInLinks } ));
 
   function defaultRenderOpts(docPage) {
     var o = {
@@ -64,6 +64,7 @@ module.exports = function render(generator) {
   generator.rewriteLink     = rewriteLink;     // link rewriter for relPaths etc.
 
   generator.renderPageTree  = renderPageTree;  // render page hierarchy starting at /
+  generator.parseLinks      = parseLinks;      // parse links from item._txt
 
   return;
 
@@ -110,7 +111,10 @@ module.exports = function render(generator) {
   function renderLayout(page) {
     var template = layoutTemplate(page);
     var html = renderTemplate(page, template);
-    return '<div data-render-layout="' + esc(template) + '">' + html + '</div>';
+    if (opts.renderPageLayoutOld) {
+      return '<div data-render-layout="' + esc(template) + '">' + html + '</div>';
+    }
+    return '<div data-render-layout="' + esc(template) + '">\n' + html + '\n</div><!--layout-->';
   }
 
   // render a page with a non-layout page-specific template
@@ -119,7 +123,10 @@ module.exports = function render(generator) {
   function renderPage(page) {
     var template = pageTemplate(page);
     var html = renderTemplate(page, template);
-    return '<div data-render-page="' + esc(template) + '">' + html + '</div>';
+    if (opts.renderPageLayoutOld) {
+      return '<div data-render-page="' + esc(template) + '">' + html + '</div>';
+    }
+    return '<div data-render-page="' + esc(page._href) + '">\n' + html + '\n</div><!--page-->';
   }
 
   // return name of document template for a page
@@ -314,5 +321,21 @@ module.exports = function render(generator) {
       });
       return out + '\n</ul>';
     }
+  }
+
+  // parse links from item text as a side effect of rendering with marked
+  // returns an array of hrefs (not fully qualified) usable for lookups in page$
+  // does not use pages.renderer with extended images, forms etc.
+  /*eslint no-unused-vars: "off"*/
+  function parseLinks(item) {
+    if (!item || !item._txt) return;
+    var links = [];
+    var renderer = new marked.Renderer();
+    renderer.link = function(href, title, text) {
+      links.push(href);
+      return ''; // don't care about actual rendered result
+    };
+    marked(item._txt, {renderer:renderer});
+    return links;
   }
 };

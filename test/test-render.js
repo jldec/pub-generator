@@ -80,7 +80,7 @@ tests.forEach(function run(tst) {
 
   test(tst.name, function(t) {
 
-    var opts = { jquery:false, sources:[{ path:'.', fragmentDelim:true, files:[tst.file] }] };
+    var opts = { jquery:false, allowSpacesInLinks:true, sources:[{ path:'.', fragmentDelim:true, files:[tst.file] }] };
 
     var generator = require('../generator')(opts);
 

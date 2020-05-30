@@ -30,9 +30,9 @@ module.exports = function helpers(generator) {
   // return html for the current page/fragment or markdown in txt
   hb.registerHelper('html', function(txt, frame) {
     var text = hbp(txt);
-    frame = text ? frame : txt;
     var fragment = text ? { _txt:text, _href:'/#synthetic' } : this;
-    return generator.renderHtml(fragment, renderOpts());
+    var opts = text ? { noWrap:true } : {};
+    return generator.renderHtml(fragment, renderOpts(opts));
   });
 
   // like 'html' without wrapping in an editor div (for menus)
@@ -90,22 +90,39 @@ module.exports = function helpers(generator) {
       return frame.fn(fragment, { data:localdata });
     });
     return map.join('');
-
-    // lookup multiple fragments via href pattern match
-    // works like resolve with a wildcard
-    // careful using this without #
-    function selectFragments(refpat, context) {
-      refpat = refpat || '#';
-      if (/^#/.test(refpat)) {
-        refpat = '^' + u.escapeRegExp((context._href || '/') + refpat);
-      }
-      else {
-        refpat = u.escapeRegExp(refpat);
-      }
-      var re = new RegExp(refpat);
-      return u.filter(generator.fragments, function(fragment) { return re.test(fragment._href); });
-    }
   });
+
+  // block-helper for fragments matching pattern
+  // fragment pattern should start with #... or /page#...
+  hb.registerHelper('eachFragmentSorted', function(pattern, frame) {
+    var p = hbp(pattern);
+    frame = p ? frame : pattern;
+    var localdata = hb.createFrame(frame.data);
+    var rg = u.sortBy(selectFragments(p, this), 'sort');
+    var map = u.map(rg, function(fragment, index) {
+      localdata.index = index;
+      if (index === rg.length - 1) { localdata.last = true; }
+      return frame.fn(fragment, { data:localdata });
+    });
+    return map.join('');
+  });
+
+  // lookup multiple fragments via href pattern match
+  // works like resolve with a wildcard
+  // careful using this without #
+  function selectFragments(refpat, context) {
+    refpat = refpat || '#';
+    if (/^#/.test(refpat)) {
+      refpat = '^' + u.escapeRegExp((context._href || '/') + refpat);
+    }
+    else {
+      refpat = u.escapeRegExp(refpat);
+    }
+    var re = new RegExp(refpat);
+    return u.filter(generator.fragments, function(fragment) {
+      return re.test(fragment._href) && !(opts.production && fragment.nopublish);
+    });
+  }
 
   // return frame.data.index mod n (works only inside eachPage or eachFragment)
   hb.registerHelper('mod', function(n, frame) {
@@ -481,6 +498,10 @@ module.exports = function helpers(generator) {
 
   hb.registerHelper('user', function() {
     return (generator.req && generator.req.user) || '';
+  });
+
+  hb.registerHelper('eachUpload', function(frame) {
+    return u.map(generator.req && generator.req.files, frame.fn).join('');
   });
 
 };
