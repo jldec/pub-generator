@@ -30,9 +30,9 @@ module.exports = function helpers(generator) {
   // return html for the current page/fragment or markdown in txt
   hb.registerHelper('html', function(txt, frame) {
     var text = hbp(txt);
-    frame = text ? frame : txt;
     var fragment = text ? { _txt:text, _href:'/#synthetic' } : this;
-    return generator.renderHtml(fragment, renderOpts());
+    var opts = text ? { noWrap:true } : {};
+    return generator.renderHtml(fragment, renderOpts(opts));
   });
 
   // like 'html' without wrapping in an editor div (for menus)
@@ -119,7 +119,9 @@ module.exports = function helpers(generator) {
       refpat = u.escapeRegExp(refpat);
     }
     var re = new RegExp(refpat);
-    return u.filter(generator.fragments, function(fragment) { return re.test(fragment._href); });
+    return u.filter(generator.fragments, function(fragment) {
+      return re.test(fragment._href) && !(opts.production && fragment.nopublish);
+    });
   }
 
   // return frame.data.index mod n (works only inside eachPage or eachFragment)

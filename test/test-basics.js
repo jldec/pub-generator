@@ -146,7 +146,8 @@ var tests =
     path: '/index.md',
     text: 'hello world\n\n---- /main-layout.hbs ----\n\n<div class="main-layout">test<br>{{{renderPage}}}</div>'
   },
-  result: '<div class="main-layout">test<br><div data-render-page="/"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
+  result: '<div class="main-layout">test<br><div data-render-page="/">\n' +
+  '<div data-render-html="/"><p>hello world</p>\n</div>\n</div><!--page--></div>'
 },
 
 { name: 'simple page and doc-layout and main-layout templates',
@@ -157,9 +158,9 @@ var tests =
       '\n\n---- /doc-layout.hbs ----\n\n<div class="doc-layout">outer layout<br>{{{renderLayout}}}</div>'
   },
   result: '<div class="doc-layout">outer layout<br>' +
-            '<div data-render-layout="main-layout"><div class="main-layout">inner layout<br>' +
-              '<div data-render-page="/"><div data-render-html="/"><p>hello world</p>\n</div></div></div>\n\n' +
-            '</div>' +
+            '<div data-render-layout="main-layout">\n<div class="main-layout">inner layout<br>' +
+              '<div data-render-page="/">\n<div data-render-html="/"><p>hello world</p>\n</div>\n</div><!--page--></div>\n\n' +
+            '\n</div><!--layout-->' +
           '</div>'
 },
 
@@ -169,7 +170,8 @@ var tests =
     path: '/index.md',
     text: 'hello world\n\n---- /doc-layout.hbs ----\n\n<div class="doc-layout">test<br>{{{renderPage}}}</div>'
   },
-  result: '<div class="doc-layout">test<br><div data-render-page="/"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
+  result: '<div class="doc-layout">test<br><div data-render-page="/">\n' +
+  '<div data-render-html="/"><p>hello world</p>\n</div>\n</div><!--page--></div>'
 },
 
 { name: 'simple page and a doc-layout template with a renderLayout - will break editor',
@@ -178,7 +180,8 @@ var tests =
     path: '/index.md',
     text: 'hello world\n\n---- /doc-layout.hbs ----\n\n<div class="doc-layout">test<br>{{{renderLayout}}}</div>'
   },
-  result: '<div class="doc-layout">test<br><div data-render-layout="default"><div data-render-html="/"><p>hello world</p>\n</div></div></div>'
+  result: '<div class="doc-layout">test<br><div data-render-layout="default">\n' +
+  '<div data-render-html="/"><p>hello world</p>\n</div>\n</div><!--layout--></div>'
 },
 
 { name: 'name with spaces etc.',
@@ -229,7 +232,7 @@ tests.reverse().forEach(function run(tst) {
 
   test(tst.name, function(t) {
 
-    var opts = { jquery:0,
+    var opts = { jquery:0, allowSpacesInLinks:true,
       sources: [ { path:'.', files:[tst.file], fragmentDelim:true } ] };
 
     var generator = require('../generator')(opts);

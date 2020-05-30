@@ -19,7 +19,7 @@ module.exports = function render(generator) {
   var log = opts.log;
 
   marked.use( { renderer: { link: renderLink, image: renderImage } } );
-  marked.use(markedForms());
+  marked.use(markedForms( { allowSpacesInLinks: opts.allowSpacesInLinks } ));
 
   function defaultRenderOpts(docPage) {
     var o = {
@@ -111,7 +111,10 @@ module.exports = function render(generator) {
   function renderLayout(page) {
     var template = layoutTemplate(page);
     var html = renderTemplate(page, template);
-    return '<div data-render-layout="' + esc(template) + '">' + html + '</div>';
+    if (opts.renderPageLayoutOld) {
+      return '<div data-render-layout="' + esc(template) + '">' + html + '</div>';
+    }
+    return '<div data-render-layout="' + esc(template) + '">\n' + html + '\n</div><!--layout-->';
   }
 
   // render a page with a non-layout page-specific template
@@ -120,7 +123,10 @@ module.exports = function render(generator) {
   function renderPage(page) {
     var template = pageTemplate(page);
     var html = renderTemplate(page, template);
-    return '<div data-render-page="' + esc(opts.renderPageOverride ? template : page._href) + '">' + html + '</div>';
+    if (opts.renderPageLayoutOld) {
+      return '<div data-render-page="' + esc(template) + '">' + html + '</div>';
+    }
+    return '<div data-render-page="' + esc(page._href) + '">\n' + html + '\n</div><!--page-->';
   }
 
   // return name of document template for a page
