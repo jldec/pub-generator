@@ -141,6 +141,7 @@ function Generator(opts) {
     u.each(opts.sources, function(source) {
       if (source.src && source.src.unref) { source.src.unref(); }
       if (source.cache && source.cache.unref) { source.cache.unref(); }
+      if (source.cache2 && source.cache2.unref) { source.cache2.unref(); }
     });
     u.each(opts.outputs, function(output) {
       if (output.output && output.output.cancel) { output.output.cancel(); }

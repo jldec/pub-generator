@@ -50,6 +50,22 @@ module.exports = function helpers(generator) {
     ));
   });
 
+  // like {{with x}} but supports named fragments, and tests if publishable.
+  hb.registerHelper('withFragment', function(ref, frame) {
+    var fragment = resolve(ref, this);
+    if (fragment && !(opts.production && fragment.nopublish)) {
+      return hb.helpers['with'].call(this, fragment, frame);
+    }
+    return frame.inverse(this);
+  });
+
+  // test whether a named/referenced fragment exists and is publishable.
+  hb.registerHelper('ifFragment', function(ref, frame) {
+    var fragment = resolve(ref, this);
+    if (fragment && !(opts.production && fragment.nopublish)) { return frame.fn(this); }
+    return frame.inverse(this);
+  });
+
   // return html for a referenced page or page-fragment
   hb.registerHelper('fragmentHtml', function(ref, frame) {
     var fragment = resolve(ref, this);
