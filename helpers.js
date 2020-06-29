@@ -59,10 +59,10 @@ module.exports = function helpers(generator) {
     return frame.inverse(this);
   });
 
-  // test whether a named/referenced fragment exists and is publishable.
-  hb.registerHelper('ifFragment', function(ref, frame) {
-    var fragment = resolve(ref, this);
-    if (fragment && !(opts.production && fragment.nopublish)) { return frame.fn(this); }
+  // test whether a named/referenced fragment or pattern exists and is publishable.
+  hb.registerHelper('ifFragment', function(pattern, frame) {
+    var fragments = selectFragments(pattern, this);
+    if (fragments.length) { return frame.fn(this); }
     return frame.inverse(this);
   });
 
