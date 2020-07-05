@@ -477,7 +477,10 @@ module.exports = function helpers(generator) {
   // title is optional
   hb.registerHelper('image', function(src, text, title) {
     var o = { href: hbp(src) || this.image || this.icon };
-    if (!o.href) return '';
+    if (!o.href) {
+      if (this.imagelink) return hb.helpers['html'].call(this, this.imagelink, src); // src == frame
+      return '';
+    }
     o.text = hbp(text) || this.name || '';
     o.title = hbp(title);
     return generator.renderImage(renderOpts(o));
