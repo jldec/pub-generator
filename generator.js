@@ -230,7 +230,7 @@ function Generator(opts) {
       }
       else if (href === '/pub/' && prefix !== '/pub') { href = '/pub~>' + prefix; } // force redirect
     }
-    debug('getPage', href);
+    // debug('getPage', href);
     process.nextTick(function() { cb(null, generator.page$[href]); });
   }
 
