@@ -26,14 +26,15 @@ module.exports = function update(generator) {
   generator.clientSave               = u.throttle(clientSave, u.ms(opts.throttleClientSave || '5s'), {leading:true, trailing:true});
   generator.clientSaveUnThrottled    = clientSave;
   generator.serverSave               = serverSave;
-  generator.flushCaches              = flushCaches;
   generator.reloadSources            = reloadSources;
+  generator.isFragmentModified       = isFragmentModified;
+  generator.revertFragmentState      = revertFragmentState;
 
   return;
 
   //--//--//--//--//--//--//--//--//--//
 
-  // ## updates with drafts mode (TODO - please reduce complexity of this code)
+  // ## updates with drafts mode (TODO - replace drafts with file-based cache/stage)
   // in drafts mode the first update to a normal page creates an (update) copy of the page
   // this ensures the the "production" site can be generated from source until the update is committed
   // copy-on-write changes are treated like other structural changes and trigger a generator reload
@@ -91,10 +92,10 @@ module.exports = function update(generator) {
       return notify('fragment header broken...\nPlease undo');
     }
 
-    if (diff._hdr && !breakHold) {
+    if ((diff._lbl || diff.page || diff.fragment)  && !breakHold) {
       oldFragment._holdUpdates = true;
       oldFragment._holdText = newText;
-      notify('fragment header modified, autosave postponed until next navigation');
+      notify('page or fragment href modified, autosave postponed until next navigation');
       return 'hold';
     }
 
@@ -109,6 +110,7 @@ module.exports = function update(generator) {
       debug('update overwrite ' + href);
       oldFragment._hdr = newFragment._hdr;
       oldFragment._txt = newFragment._txt;
+      checkRevertState(oldFragment, oldText)
     }
     else {
       // splice fresh (update) fragment right after oldFragment
@@ -146,6 +148,27 @@ module.exports = function update(generator) {
     }
   }
 
+  function checkRevertState(fragment, oldText) {
+    if (fragment.serialize() == fragment._oldState) {
+      delete fragment._oldState;
+      return;
+    }
+    fragment._oldState = oldText;
+  }
+
+  function isFragmentModified(href) {
+    var fragment = generator.fragment$[href];
+    return fragment && u.has(fragment, '_oldState');
+  }
+
+  function revertFragmentState(href) {
+    if (isFragmentModified(href)) {
+      clientUpdateFragmentText(href, generator.fragment$[href]._oldState);
+      generator.emit('nav');     // force reload
+    }
+  }
+
+
   function clientSaveHoldText() {
     u.each(generator.fragment$, function(fragment) {
       if (fragment._holdUpdates) {
@@ -181,6 +204,7 @@ module.exports = function update(generator) {
   }
 
   // clientSave currently used only in browser
+  // opts.StaticHost from browser directly to source removed July 2020
   function clientSave() {
 
     u.each(sources, function(source) {
@@ -199,60 +223,33 @@ module.exports = function update(generator) {
 
         debug('clientSave %s files, %s...', files.length, files[0].text.slice(0,200));
 
-        // static save from browser directly to source
-        if (opts.staticHost && source.staticSrc && source.src) {
+        httpClient.put({ source:source.name, files:files }, function(err, savedFiles) {
 
-          // NOTE: subtle difference in data compared to httpClient.put()
-          source.src.put(files, function(err, savedFiles) {
+          if (err || (u.size(savedFiles) !== u.size(dirtyFiles))) {
+            if (err) { log(err); }
+            // notify user on save errors
+            return notify('error saving files, please check your internet connection');
+          }
 
-            if (err || (u.size(savedFiles) !== u.size(dirtyFiles))) {
-              // notify user on save errors
-              return notify('error saving files, please check your internet connection');
+          u.each(dirtyFiles, function(file, idx) {
+
+            var savedFile = savedFiles[idx];
+
+            if (typeof savedFile !== 'object') {
+              // most likely a collision - must notify user
+              return notify('error saving file: ' + savedFile);
             }
 
-            u.each(dirtyFiles, function(file) {
+            // preserve for next update
+            file._oldtext = savedFile.text;
 
-              // no collision detection support with static saves (for now)
-              file._oldtext = file.text;
+            // only mark as clean if unchanged while waiting for save
+            if (file._dirty === 2) { delete file._dirty; }
 
-              // only mark as clean if unchanged while waiting for save
-              if (file._dirty === 2) { delete file._dirty; }
-            });
-
-            return source.verbose && notify(u.size(savedFiles) + ' file(s) saved');
           });
-        }
 
-        // normal (non-static) save from browser to pub-server
-        else {
-          httpClient.put({ source:source.name, files:files }, function(err, savedFiles) {
-
-            if (err || (u.size(savedFiles) !== u.size(dirtyFiles))) {
-              if (err) { log(err); }
-              // notify user on save errors
-              return notify('error saving files, please check your internet connection');
-            }
-
-            u.each(dirtyFiles, function(file, idx) {
-
-              var savedFile = savedFiles[idx];
-
-              if (typeof savedFile !== 'object') {
-                // most likely a collision - must notify user
-                return notify('error saving file: ' + savedFile);
-              }
-
-              // preserve for next update
-              file._oldtext = savedFile.text;
-
-              // only mark as clean if unchanged while waiting for save
-              if (file._dirty === 2) { delete file._dirty; }
-
-            });
-
-            return source.verbose && notify(u.size(savedFiles) + ' file(s) saved');
-          });
-        }
+          return source.verbose && notify(u.size(savedFiles) + ' file(s) saved');
+        });
       }
     });
   }
@@ -297,26 +294,6 @@ module.exports = function update(generator) {
     if (!source._watching || source.src.flush) {
       generator.reload();
     }
-  }
-
-
-  function flushCaches(cb) {
-    cb = u.onceMaybe(cb);
-
-    var results = []; // in order of cb's
-
-    var ok = u.after(opts.sources.length, function() {
-      cb(null, results);
-    });
-
-    u.each(opts.sources, function(source) {
-      if (!source.src.flush) return ok();
-      source.src.flush(function(err) {
-        if (err) return cb(log(err));
-        results.push(source.name);
-        ok();
-      });
-    });
   }
 
   // trigger reload from source
