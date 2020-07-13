@@ -110,7 +110,7 @@ module.exports = function update(generator) {
       debug('update overwrite ' + href);
       oldFragment._hdr = newFragment._hdr;
       oldFragment._txt = newFragment._txt;
-      checkRevertState(oldFragment, oldText)
+      checkRevertState(oldFragment, oldText);
     }
     else {
       // splice fresh (update) fragment right after oldFragment
