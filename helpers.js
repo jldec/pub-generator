@@ -400,30 +400,47 @@ module.exports = function helpers(generator) {
     return (v === v && v !== Infinity) ? v : 0;
   });
 
-  // minimal text-only diff renderer (for use inside hover or title tag)
-  // not accurate - TODO fragment-level diffing
+  // Warning: this helper only works with legacy page/fragment frontmatter
+  // TODO: re-implement using generator built-in parser and fragment-level diffing
   hb.registerHelper('difftext', function() {
     var s = '';
+    var pagecontext = '';
     var context = '';
+    var firstcontext = '';
     var page = '';
+    var fragments = '';
     var m;
-    u.each(this.diff, function(v) {
-      // grab last page or fragment id before change
-      if ((m = v.value.match(/\n\s*(page|fragment):([^\n]*\n)/g))) {
-        context = m.slice(-1)[0];
-        if (!page) { page = u.trim(context); }
+    var last = u.size(this.diff) - 1;
+    u.each(this.diff, function(v,i) {
+      // grab page or fragment href
+      if (i < last && (m = v.value.match(/\n\s*(page|fragment):([^\n]*\n)/g))) {
+        pagecontext = u.trim(m[0]); // first match
+        context = u.trim(m.slice(-1)[0]); // last match
+        page = page || pagecontext.replace(/^(page|fragment):\s*/, '');
+        fragments = fragments + (fragments ? ', ' : '') + context;
+        // if the first change is a fragment, adjust page to point to fragment.
+        if (!firstcontext) {
+          firstcontext = context;
+          if (context.match(/^fragment:/)) {
+            var fragment = context.replace(/^fragment:\s*/, '');
+            page = fragment.match(/^#/) ? page + fragment : fragment;
+          }
+        }
       }
+      var sep = context.replace(/./g, '=');
+      sep = sep ? '\n' + sep + '\n' + context + '\n' + sep + '\n' : '\n';
       if (v.added) {
-        s += context + '\nadded: '+v.value;
+        s +=  sep + '> > > > '+v.value;
         context = '';
       }
       if (v.removed) {
-        s += context + '\nremoved: '+v.value;
+        s += sep + '< < < < '+v.value;
         context = '';
       }
     });
     this.difftext = s || 'no change';
-    this.diffpage = page || this.file;
+    this.diffpage = page;
+    this.difffragments = fragments || this.file;
     return this.difftext;
   });
 

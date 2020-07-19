@@ -148,12 +148,15 @@ module.exports = function update(generator) {
     }
   }
 
+  // Called after every update, oldText = text before the most recent update.
   function checkRevertState(fragment, oldText) {
-    if (fragment.serialize() == fragment._oldState) {
+    if (fragment.serialize() === fragment._oldState) {
       delete fragment._oldState;
       return;
     }
-    fragment._oldState = oldText;
+    if (!u.has(fragment, '_oldState')) {
+      fragment._oldState = oldText;
+    }
   }
 
   function isFragmentModified(href) {
@@ -221,7 +224,7 @@ module.exports = function update(generator) {
 
         var files = u.map(dirtyFiles, generator.serializeFile);
 
-        debug('clientSave %s files, %s...', files.length, files[0].text.slice(0,200));
+        debug('clientSave ', u.map(files, function(file) { return u.get(file, 'path'); }));
 
         httpClient.put({ source:source.name, files:files }, function(err, savedFiles) {
 
@@ -296,7 +299,7 @@ module.exports = function update(generator) {
     }
   }
 
-  // trigger reload from source
+  // trigger reload from source bypassing caches
   // input = string or array of source names, nothing => all
   function reloadSources(names) {
 
@@ -309,7 +312,7 @@ module.exports = function update(generator) {
     u.each(names, function(name) {
       var source = opts.source$[name];
       if (source) {
-        source._reloadFromSource = true;
+        source._reloadFromSource = true; // this flag signals cache bypass
         results.push(name);
       } else {
         results.push(log('reloadSources unknown source ' + name));
