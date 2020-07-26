@@ -430,11 +430,11 @@ module.exports = function helpers(generator) {
       var sep = context.replace(/./g, '=');
       sep = sep ? '\n' + sep + '\n' + context + '\n' + sep + '\n' : '\n';
       if (v.added) {
-        s +=  sep + '> > > > '+v.value;
+        s +=  sep + '> > > > > added > > > > >\n'+v.value;
         context = '';
       }
       if (v.removed) {
-        s += sep + '< < < < '+v.value;
+        s += sep + '< < < < < removed < < < < <\n'+v.value;
         context = '';
       }
     });

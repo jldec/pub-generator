@@ -15,7 +15,7 @@ var asyncbuilder = require('asyncbuilder');
 module.exports = function output(generator) {
 
   var opts = generator.opts;
-  var log = generator.log;
+  var log = opts.log;
 
   // add throttled output() function to each output
   u.each(opts.outputs, function(output) {

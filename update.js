@@ -294,7 +294,7 @@ module.exports = function update(generator) {
     });
 
     // avoid double-reload after save when watching (or watching but cached without writethru)
-    if (!source._watching || source.src.flush) {
+    if (!source._watching || source.src.commit) {
       generator.reload();
     }
   }
