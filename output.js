@@ -15,6 +15,7 @@ var asyncbuilder = require('asyncbuilder');
 module.exports = function output(generator) {
 
   var opts = generator.opts;
+  var log = generator.log;
 
   // add throttled output() function to each output
   u.each(opts.outputs, function(output) {
@@ -86,6 +87,13 @@ module.exports = function output(generator) {
       files.push(file);
     });
 
+    // for now all dynamic routes are extensionless, JSON
+    // route objects look like { route:string, fn:string }
+    // fn is assumed to be a function/method of generator
+    u.each(output.dynamicRoutes, function(route) {
+      files.push( { route:route, path:route.route + '.json' } );
+    });
+
     // pass2:
     fixOutputPaths(output, files);
 
@@ -99,8 +107,17 @@ module.exports = function output(generator) {
         opts.staticRoot   ? { relPath:opts.staticRoot } :
         {};
       if (output.fqImages) { renderOpts.fqImages = output.fqImages; }
-      file.text = generator.renderDoc(file.page, renderOpts);
+      try {
+        file.text =
+        file.page ? generator.renderDoc(file.page, renderOpts) :
+        file.route ? JSON.stringify(generator[file.route.fn].call(generator)) : '';
+      }
+      catch(err) {
+        log(err);
+        file.text = err;
+      }
       delete file.page;
+      delete file.route;
     });
 
     output.src.put(files, cb);

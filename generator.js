@@ -57,8 +57,8 @@ function Generator(opts) {
     // other methods
     compilePages:      compilePages, // sync recompile pages from source
     logPages:          logPages,     // log pages and templates
-    getPage:           getPage,      // async get page (respects getX headers)
-    findPage:          findPage,     // sync get page (no getX headers support)
+    getPage:           getPage,      // async get page
+    findPage:          findPage,     // sync get page
     redirect:          redirect,     // lookup alias or redirect url
     debug:             debug,        // help debug plugins etc.
 
@@ -108,14 +108,10 @@ function Generator(opts) {
 
   function logPages() {
     u.each(generator.pages, function(page) {
-      if (!/^\/pub\/|^\/admin\/|^\/server\//.test(page._href)) {
-        log('page: ' + page._href);
-      }
+      log('page: ' + page._href);
     });
     u.each(generator.template$, function(t, name) {
-      if (!/^pub\//.test(name)) {
-        log('template: ' + name);
-      }
+      log('template: ' + name);
     });
   }
 
@@ -141,6 +137,7 @@ function Generator(opts) {
     u.each(opts.sources, function(source) {
       if (source.src && source.src.unref) { source.src.unref(); }
       if (source.cache && source.cache.unref) { source.cache.unref(); }
+      if (source.cache2 && source.cache2.unref) { source.cache2.unref(); }
     });
     u.each(opts.outputs, function(output) {
       if (output.output && output.output.cancel) { output.output.cancel(); }
@@ -185,14 +182,21 @@ function Generator(opts) {
     generator.emit('pages-ready');
   }
 
-  // index page[header] -> page with support for multi-val headers
+  // index page[header] -> page._href with support for multi-val headers
   function indexPages(header) {
     var map = {};
     u.each(generator.pages, function(page) {
       u.each(u.getaVals(page, header), function(val) {
-        map[val] = page;
+        map[val] = page._href;
       });
     });
+    // inject redirect for trailing slash on editorPrefix (TODO - logic for other pages)
+    if (header === 'redirect' && opts.editor) {
+      map[opts.editorPrefix] = opts.editorPrefix + '/';
+      if (opts.editorPrefix !== '/pub') {
+        map['/pub'] = map['/pub/'] = opts.editorPrefix + '/';
+      }
+    }
     return map;
   }
 
@@ -212,19 +216,22 @@ function Generator(opts) {
     generator.template$ = t;
   }
 
-  // async page retrieval
-  // hooks generator.getxxx(page, cb) if page.get = xxx
+  // potentially async page retrieval
+  // returns /pub/ for <editorPrefix/... urls, and sets generator.route
+  // does not match naked <editorPrefix> without trailing / -- see redirect() below
   function getPage(url, cb) {
+    var href = u.urlPath(url);
 
-    var page = generator.page$[u.urlPath(url)];
-    var getFn = page && page.get && generator['get'+page.get];
-
-    if (getFn) {
-      getFn(page, function() { cb(null, page); });
+    if(opts.editor) {
+      var prefix = opts.editorPrefix;
+      if (u.startsWith(url, prefix + '/') && generator.page$[u.urlPath(u.unPrefix(url, prefix))]) {
+        generator.route = u.unPrefix(url, prefix);
+        href = '/pub/';
+      }
+      else if (href === '/pub/' && prefix !== '/pub') { href = '/pub~>' + prefix; } // force redirect
     }
-    else {
-      process.nextTick(function() { cb(null, page); });
-    }
+    // debug('getPage', href);
+    process.nextTick(function() { cb(null, generator.page$[href]); });
   }
 
   // sugar
@@ -240,14 +247,14 @@ function Generator(opts) {
     var params = u.urlParams(url);
 
     var pg = generator.aliase$[path];
-    if (pg) return { status:301, url:pg._href + params };
+    if (pg) { debug('alias %s to %s', url, pg); return { status:301, url:pg + params }; }
 
     pg = generator.redirect$[path];
-    if (pg) return { status:302, url:pg._href + params };
+    if (pg) { debug('redirect %s to %s', url, pg); return { status:302, url:pg + params }; }
 
-    // customRedirects return params also
+    // customRedirects return pg with params
     pg = generator.customRedirect && generator.customRedirect(url);
-    if (pg) return { status:301, url:pg };
+    if (pg) { debug('customRedirect %s to %s', url, pg); return { status:301, url:pg }; }
   }
 
 }

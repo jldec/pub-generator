@@ -50,6 +50,22 @@ module.exports = function helpers(generator) {
     ));
   });
 
+  // like {{with x}} but supports named fragments, and tests if publishable.
+  hb.registerHelper('withFragment', function(ref, frame) {
+    var fragment = resolve(ref, this);
+    if (fragment && !(opts.production && fragment.nopublish)) {
+      return hb.helpers['with'].call(this, fragment, frame);
+    }
+    return frame.inverse(this);
+  });
+
+  // test whether a named/referenced fragment or pattern exists and is publishable.
+  hb.registerHelper('ifFragment', function(pattern, frame) {
+    var fragments = selectFragments(pattern, this);
+    if (fragments.length) { return frame.fn(this); }
+    return frame.inverse(this);
+  });
+
   // return html for a referenced page or page-fragment
   hb.registerHelper('fragmentHtml', function(ref, frame) {
     var fragment = resolve(ref, this);
@@ -384,30 +400,47 @@ module.exports = function helpers(generator) {
     return (v === v && v !== Infinity) ? v : 0;
   });
 
-  // minimal text-only diff renderer (for use inside hover or title tag)
-  // not accurate - TODO fragment-level diffing
+  // Warning: this helper only works with legacy page/fragment frontmatter
+  // TODO: re-implement using generator built-in parser and fragment-level diffing
   hb.registerHelper('difftext', function() {
     var s = '';
+    var pagecontext = '';
     var context = '';
+    var firstcontext = '';
     var page = '';
+    var fragments = '';
     var m;
-    u.each(this.diff, function(v) {
-      // grab last page or fragment id before change
-      if ((m = v.value.match(/\n\s*(page|fragment):([^\n]*\n)/g))) {
-        context = m.slice(-1)[0];
-        if (!page) { page = u.trim(context); }
+    var last = u.size(this.diff) - 1;
+    u.each(this.diff, function(v,i) {
+      // grab page or fragment href
+      if (i < last && (m = v.value.match(/\n\s*(page|fragment):([^\n]*\n)/g))) {
+        pagecontext = u.trim(m[0]); // first match
+        context = u.trim(m.slice(-1)[0]); // last match
+        page = page || pagecontext.replace(/^(page|fragment):\s*/, '');
+        fragments = fragments + (fragments ? ', ' : '') + context;
+        // if the first change is a fragment, adjust page to point to fragment.
+        if (!firstcontext) {
+          firstcontext = context;
+          if (context.match(/^fragment:/)) {
+            var fragment = context.replace(/^fragment:\s*/, '');
+            page = fragment.match(/^#/) ? page + fragment : fragment;
+          }
+        }
       }
+      var sep = context.replace(/./g, '=');
+      sep = sep ? '\n' + sep + '\n' + context + '\n' + sep + '\n' : '\n';
       if (v.added) {
-        s += context + '\nadded: '+v.value;
+        s +=  sep + '> > > > '+v.value;
         context = '';
       }
       if (v.removed) {
-        s += context + '\nremoved: '+v.value;
+        s += sep + '< < < < '+v.value;
         context = '';
       }
     });
     this.difftext = s || 'no change';
-    this.diffpage = page || this.file;
+    this.diffpage = page;
+    this.difffragments = fragments || this.file;
     return this.difftext;
   });
 
@@ -461,7 +494,10 @@ module.exports = function helpers(generator) {
   // title is optional
   hb.registerHelper('image', function(src, text, title) {
     var o = { href: hbp(src) || this.image || this.icon };
-    if (!o.href) return '';
+    if (!o.href) {
+      if (this.imagelink) return hb.helpers['html'].call(this, this.imagelink, src); // src == frame
+      return '';
+    }
     o.text = hbp(text) || this.name || '';
     o.title = hbp(title);
     return generator.renderImage(renderOpts(o));
