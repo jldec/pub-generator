@@ -10,18 +10,10 @@ var u = require('pub-util');
 var path = require('path');
 var ppath = path.posix || path; // in browser path is posix
 
-var asyncbuilder = require('asyncbuilder');
-
 module.exports = function output(generator) {
 
   var opts = generator.opts;
   var log = opts.log;
-
-  // add throttled output() function to each output
-  u.each(opts.outputs, function(output) {
-    var fn = function(cb) { outputOutput(output, cb); };
-    output.output = u.throttleMs(fn, output.throttle || '10s');
-  });
 
   generator.outputPages = outputPages;
 
@@ -29,45 +21,22 @@ module.exports = function output(generator) {
 
   //--//--//--//--//--//--//--//--//--//
 
-  // trigger specified (or all) outputs
-  function outputPages(names, cb) {
-    if (typeof names === 'function') { cb = names; names = ''; }
-
-    names = u.isArray(names) ? names :
-           names ? [names] :
-           u.keys(opts.output$);
-
-    var ab = asyncbuilder(cb);
-
-    u.each(names, function(name) {
-      var output = opts.output$[name];
-      if (output) {
-        output.output(ab.asyncAppend());
-      } else {
-        ab.append('outputPages called with unknown output: ' + name);
-      }
-    });
-
-    ab.complete();
-  }
-
-
-  // outputOutput()
-  // unthrottled single output output.
+  // outputPages()
   // converts pages which are also directories into dir/index.html files
+  // returns array of { page:<href>, file:<output-path> }
   //
   // TODO
   // - smarter diffing, incremental output
   // - omit dynamic pages
-  // - render headers or other page metadata e.g. for publishing to s3
+  // - return headers or other page metadata e.g. for publishing to s3
 
-  function outputOutput(output, cb) {
+  function outputPages(output, cb) {
+    if (typeof output === 'function') { cb = output; output = null; }
     cb = u.maybe(cb);
+    output = output || opts.outputs[0];
 
-    if (!output) return cb(new Error('no output specified'));
-
-    debug('output %s', output.name);
     var files = output.files = [];
+    var filemap = [];
 
     var omit = output.omitRoutes;
     if (omit && !u.isArray(omit)) { omit = [omit]; }
@@ -87,13 +56,6 @@ module.exports = function output(generator) {
       files.push(file);
     });
 
-    // for now all dynamic routes are extensionless, JSON
-    // route objects look like { route:string, fn:string }
-    // fn is assumed to be a function/method of generator
-    u.each(output.dynamicRoutes, function(route) {
-      files.push( { route:route, path:route.route + '.json' } );
-    });
-
     // pass2:
     fixOutputPaths(output, files);
 
@@ -108,19 +70,20 @@ module.exports = function output(generator) {
         {};
       if (output.fqImages) { renderOpts.fqImages = output.fqImages; }
       try {
-        file.text =
-        file.page ? generator.renderDoc(file.page, renderOpts) :
-        file.route ? JSON.stringify(generator[file.route.fn].call(generator)) : '';
+        file.text = generator.renderDoc(file.page, renderOpts);
       }
       catch(err) {
         log(err);
         file.text = err;
       }
+      filemap.push( { href:file.page._href, path:file.path } );
       delete file.page;
-      delete file.route;
     });
 
-    output.src.put(files, cb);
+    output.src.put(files, function(err) {
+      if (err) return cb(err, filemap);
+      cb(null, filemap);
+    });
   }
 
   // convert file-paths to 'index' files where necessary

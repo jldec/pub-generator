@@ -26,7 +26,6 @@ module.exports = function update(generator) {
   generator.clientSave               = u.throttle(clientSave, u.ms(opts.throttleClientSave || '5s'), {leading:true, trailing:true});
   generator.clientSaveUnThrottled    = clientSave;
   generator.serverSave               = serverSave;
-  generator.reloadSources            = reloadSources;
   generator.isFragmentModified       = isFragmentModified;
   generator.revertFragmentState      = revertFragmentState;
 
@@ -297,30 +296,6 @@ module.exports = function update(generator) {
     if (!source._watching || source.src.commit) {
       generator.reload();
     }
-  }
-
-  // trigger reload from source bypassing caches
-  // input = string or array of source names, nothing => all
-  function reloadSources(names) {
-
-    names = u.isArray(names) ? names :
-           names ? [names] :
-           u.keys(opts.source$);
-
-    var results = [];
-
-    u.each(names, function(name) {
-      var source = opts.source$[name];
-      if (source) {
-        source._reloadFromSource = true; // this flag signals cache bypass
-        results.push(name);
-      } else {
-        results.push(log('reloadSources unknown source ' + name));
-      }
-    });
-
-    generator.reload(); // throttled
-    return results;
   }
 
   function notify() {
