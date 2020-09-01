@@ -53,6 +53,7 @@ module.exports = function output(generator) {
       if (output.match && !output.match(page)) return;
       var file = { page: page, path: page._href };
       if (page['http-header']) { file['http-header'] = page['http-header']; }
+      if (page['noextension']) { file['noextension'] = page['noextension']; }
       files.push(file);
     });
 
@@ -109,7 +110,7 @@ module.exports = function output(generator) {
         debug('index file for %s', file.path);
         file.path = ppath.join(file.path, indexFile);
       }
-      if (!/\.[^/]*$/.test(file.path)) {
+      if (!file.noextension && !/\.[^/]*$/.test(file.path)) {
         file.path = file.path + extension;
       }
     });
