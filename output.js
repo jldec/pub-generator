@@ -50,12 +50,18 @@ module.exports = function output(generator) {
     // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function(page) {
       if (filterRe.test(page._href)) return;
-      if (output.match && !output.match(page)) return;
       var file = { page: page, path: page._href };
       if (page['http-header']) { file['http-header'] = page['http-header']; }
       if (page['noextension']) { file['noextension'] = page['noextension']; }
       files.push(file);
     });
+
+    if (output.outputAliases && generator.template$.redirect) {
+      u.each(generator.aliase$, function(to, path) {
+        var page = { _href:path, redirect_to:to, nolayout:1, template:'redirect' };
+        files.push({ page:page, path:path });
+      });
+    }
 
     // pass2:
     fixOutputPaths(output, files);
@@ -77,7 +83,11 @@ module.exports = function output(generator) {
         log(err);
         file.text = err;
       }
-      filemap.push( { href:file.page._href, path:file.path } );
+      // insert entry into filemap
+      var fm = { path:file.path };
+      if (file.page._href) { fm.href = file.page._href; }
+      if (file.page.redirect_to) { fm.redirect_to = file.page.redirect_to; }
+      filemap.push( fm );
       delete file.page;
     });
 
