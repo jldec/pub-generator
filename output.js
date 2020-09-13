@@ -50,6 +50,7 @@ module.exports = function output(generator) {
     // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function(page) {
       if (filterRe.test(page._href)) return;
+      if (output.match && !output.match(page)) return; // used by tel
       var file = { page: page, path: page._href };
       if (page['http-header']) { file['http-header'] = page['http-header']; }
       if (page['noextension']) { file['noextension'] = page['noextension']; }
@@ -121,7 +122,7 @@ module.exports = function output(generator) {
     u.each(files, function(file) {
       if (dirMap[file.path]) {
         i++;
-        log('index file %d for %s', i, file.path);
+        debug('index file %d for %s', i, file.path);
         file.path = ppath.join(file.path, indexFile);
       }
       if (!file.noextension && !/\.[^/]*$/.test(file.path)) {
