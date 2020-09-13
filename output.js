@@ -7,21 +7,13 @@
 
 var debug = require('debug')('pub:generator:output');
 var u = require('pub-util');
-var path = require('path');
-var ppath = path.posix || path; // in browser path is posix
-
-var asyncbuilder = require('asyncbuilder');
+var npath = require('path');
+var ppath = npath.posix || npath; // in browser path is posix
 
 module.exports = function output(generator) {
 
   var opts = generator.opts;
   var log = opts.log;
-
-  // add throttled output() function to each output
-  u.each(opts.outputs, function(output) {
-    var fn = function(cb) { outputOutput(output, cb); };
-    output.output = u.throttleMs(fn, output.throttle || '10s');
-  });
 
   generator.outputPages = outputPages;
 
@@ -29,45 +21,22 @@ module.exports = function output(generator) {
 
   //--//--//--//--//--//--//--//--//--//
 
-  // trigger specified (or all) outputs
-  function outputPages(names, cb) {
-    if (typeof names === 'function') { cb = names; names = ''; }
-
-    names = u.isArray(names) ? names :
-           names ? [names] :
-           u.keys(opts.output$);
-
-    var ab = asyncbuilder(cb);
-
-    u.each(names, function(name) {
-      var output = opts.output$[name];
-      if (output) {
-        output.output(ab.asyncAppend());
-      } else {
-        ab.append('outputPages called with unknown output: ' + name);
-      }
-    });
-
-    ab.complete();
-  }
-
-
-  // outputOutput()
-  // unthrottled single output output.
+  // outputPages()
   // converts pages which are also directories into dir/index.html files
+  // returns array of { page:<href>, file:<output-path> }
   //
   // TODO
   // - smarter diffing, incremental output
   // - omit dynamic pages
-  // - render headers or other page metadata e.g. for publishing to s3
+  // - return headers or other page metadata e.g. for publishing to s3
 
-  function outputOutput(output, cb) {
+  function outputPages(output, cb) {
+    if (typeof output === 'function') { cb = output; output = null; }
     cb = u.maybe(cb);
+    output = output || opts.outputs[0];
 
-    if (!output) return cb(new Error('no output specified'));
-
-    debug('output %s', output.name);
     var files = output.files = [];
+    var filemap = [];
 
     var omit = output.omitRoutes;
     if (omit && !u.isArray(omit)) { omit = [omit]; }
@@ -81,18 +50,21 @@ module.exports = function output(generator) {
     // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function(page) {
       if (filterRe.test(page._href)) return;
-      if (output.match && !output.match(page)) return;
+      if (output.match && !output.match(page)) return; // used by tel
       var file = { page: page, path: page._href };
       if (page['http-header']) { file['http-header'] = page['http-header']; }
+      if (page['noextension']) { file['noextension'] = page['noextension']; }
       files.push(file);
+      debug('pages file:', file.path);
     });
 
-    // for now all dynamic routes are extensionless, JSON
-    // route objects look like { route:string, fn:string }
-    // fn is assumed to be a function/method of generator
-    u.each(output.dynamicRoutes, function(route) {
-      files.push( { route:route, path:route.route + '.json' } );
-    });
+    if (output.outputAliases && generator.template$.redirect) {
+      u.each(generator.aliase$, function(to, path) {
+        var page = { _href:path, redirect_to:to, nolayout:1, template:'redirect' };
+        files.push({ page:page, path:path });
+        debug('aliases file:', path);
+      });
+    }
 
     // pass2:
     fixOutputPaths(output, files);
@@ -108,19 +80,24 @@ module.exports = function output(generator) {
         {};
       if (output.fqImages) { renderOpts.fqImages = output.fqImages; }
       try {
-        file.text =
-        file.page ? generator.renderDoc(file.page, renderOpts) :
-        file.route ? JSON.stringify(generator[file.route.fn].call(generator)) : '';
+        file.text = generator.renderDoc(file.page, renderOpts);
       }
       catch(err) {
         log(err);
         file.text = err;
       }
+      // insert entry into filemap
+      var fm = { path:file.path };
+      if (file.page._href) { fm.href = file.page._href; }
+      if (file.page.redirect_to) { fm.redirect_to = file.page.redirect_to; }
+      filemap.push( fm );
       delete file.page;
-      delete file.route;
     });
 
-    output.src.put(files, cb);
+    output.src.put(files, function(err) {
+      if (err) return cb(err, filemap);
+      cb(null, filemap);
+    });
   }
 
   // convert file-paths to 'index' files where necessary
@@ -141,12 +118,14 @@ module.exports = function output(generator) {
     var extension = 'extension' in output ? (output.extension || '') : '.html';
     var indexFile = output.indexFile || 'index';
 
+    var i = 0;
     u.each(files, function(file) {
       if (dirMap[file.path]) {
-        debug('index file for %s', file.path);
+        i++;
+        debug('index file %d for %s', i, file.path);
         file.path = ppath.join(file.path, indexFile);
       }
-      if (!/\.[^/]*$/.test(file.path)) {
+      if (!file.noextension && !/\.[^/]*$/.test(file.path)) {
         file.path = file.path + extension;
       }
     });

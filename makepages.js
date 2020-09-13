@@ -78,17 +78,22 @@ module.exports = function makepages(fragments, opts) {
     var page = treePages[i];
     var pHref = u.parentHref(page._href, opts.noTrailingSlash);
     var parent = pHref && treePage$[pHref];
+    var irregularParent = false;
     if (pHref && !parent && opts.folderPages) {
       parent = treePage$[pHref] = { _href:pHref, folderPage:true };
       treePages.push(parent); // mutate!
-      // opts.log('WARNING: makepages - synthesized folder page %s for %s', pHref, page._href);
+      opts.log('WARNING: makepages - synthesized parent folder page %s for %s', pHref, page._href);
     }
     else while (pHref && !parent) {
       pHref = u.parentHref(pHref, opts.noTrailingSlash);
       parent = page$[pHref];
+      irregularParent = true;
     }
     if (parent) {
       page._parent = parent;
+      if (irregularParent && opts.parentFolderWarnings) {
+        opts.log('WARNING: makepages - irregular parent folder page %s for %s', pHref, page._href);
+      }
       if (!parent._children) { parent._children = []; }
       var cnt = parent._children.push(page);
       if (cnt > 1) {
