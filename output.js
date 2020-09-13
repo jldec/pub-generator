@@ -7,8 +7,8 @@
 
 var debug = require('debug')('pub:generator:output');
 var u = require('pub-util');
-var path = require('path');
-var ppath = path.posix || path; // in browser path is posix
+var npath = require('path');
+var ppath = npath.posix || npath; // in browser path is posix
 
 module.exports = function output(generator) {
 
@@ -54,12 +54,14 @@ module.exports = function output(generator) {
       if (page['http-header']) { file['http-header'] = page['http-header']; }
       if (page['noextension']) { file['noextension'] = page['noextension']; }
       files.push(file);
+      debug('pages file:', file.path);
     });
 
     if (output.outputAliases && generator.template$.redirect) {
       u.each(generator.aliase$, function(to, path) {
         var page = { _href:path, redirect_to:to, nolayout:1, template:'redirect' };
         files.push({ page:page, path:path });
+        debug('aliases file:', path);
       });
     }
 
@@ -115,9 +117,11 @@ module.exports = function output(generator) {
     var extension = 'extension' in output ? (output.extension || '') : '.html';
     var indexFile = output.indexFile || 'index';
 
+    var i = 0;
     u.each(files, function(file) {
       if (dirMap[file.path]) {
-        debug('index file for %s', file.path);
+        i++;
+        log('index file %d for %s', i, file.path);
         file.path = ppath.join(file.path, indexFile);
       }
       if (!file.noextension && !/\.[^/]*$/.test(file.path)) {
