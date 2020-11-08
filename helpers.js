@@ -181,18 +181,6 @@ module.exports = function helpers(generator) {
     return this.title || this.name || u.unslugify(this._href);
   });
 
-  // return scripts tags for socket.io and pub-ux
-  // TODO: configurable endpoint and more sensible logic for controlling production/static
-  hb.registerHelper('pub-ux', function(frame) {
-    if (!opts.production && opts.editor) {
-      return (opts['no-sockets'] ? '' :
-             ('<script src="' + relPath() + '/socket.io/socket.io.js"></script>\n' +
-                '<script src="' + relPath() + '/server/pub-sockets.js"></script>\n')) +
-             '<script src="' + relPath() + '/server/pub-ux.js"></script>';
-    }
-    return '';
-  });
-
   // block helper applies headers for values with pattern meta-<name>: <value>
   hb.registerHelper('eachMeta', function(frame) {
     var metakeys = u.filter(u.keys(this), function(key) { return /^meta-/.test(key); });

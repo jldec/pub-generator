@@ -6,8 +6,7 @@
  * return = array of pages in file/fragment order
  *
  * NOTES
- * - respect nopublish flag (omits page) if opts.production - feels hacky - TODO: find better way
- * - JL 11/21 - TODO: fix to support regen now that files are hidden?
+ * - respect nopublish flag (omits page) if opts.production
  *
  * for each page
  *   *:          named values (via parseheaders)
@@ -47,8 +46,7 @@ module.exports = function makepages(fragments, opts) {
   function processPageFragment(fragment) {
     var href = u.parseHref(fragment._href);
     // ignore fragments belonging to unpublished pages or .nopublish (legacy)
-    if (nopage$[href.path] ||
-       ((opts.production || opts.outputOnly) && fragment.nopublish)) return;
+    if (nopage$[href.path] || (opts.production && fragment.nopublish)) return;
     var page = page$[href.path];
     if (!page) return opts.log('WARNING: makepages - no matching page found for fragment %s', fragment._href);
     if (!page._fragments) { page._fragments = []; }
@@ -59,7 +57,7 @@ module.exports = function makepages(fragments, opts) {
 
   function processPage(page) {
     if (page$[page._href]) return opts.log('WARNING: makepages - duplicate page %s', page._href);
-    if (page.static || ((opts.production || opts.outputOnly) && page.nopublish)) return nopage$[page._href] = page; // legacy
+    if (page.static || (opts.production && page.nopublish)) return nopage$[page._href] = page;
     page$[page._href] = page;
     pages.push(page);
   }
