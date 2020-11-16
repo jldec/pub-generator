@@ -1,15 +1,15 @@
 {
   "name": "pub-generator",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "markdown/handlebars site generator - runs in node or browser",
   "main": "generator.js",
   "dependencies": {
     "asyncbuilder": "^1.0.9",
     "debug": "^4.2.0",
     "handlebars": "^4.7.6",
-    "marked": "^1.2.3",
-    "marked-forms": "^4.1.1",
-    "pub-resolve-opts": "^1.9.1",
+    "marked": "^1.2.4",
+    "marked-forms": "^4.1.2",
+    "pub-resolve-opts": "^1.9.2",
     "pub-src-http": "^1.1.4",
     "pub-util": "^3.2.0"
   },
