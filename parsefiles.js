@@ -122,6 +122,16 @@ function parseFilesPUB(source, opts) {
         }
       }
 
+      // add a default extension, if configured and we're not on the index page
+      if (
+          !lbl.hasOwnProperty('_ext') &&
+          lbl.hasOwnProperty('_name') &&
+          lbl._name !== '' &&
+          source.hasOwnProperty('defaultExt')
+      ) {
+        lbl._ext = source.defaultExt;
+      }
+
       // record ._href
       fragment._href = (lbl._path || '') + (lbl._name || '') +
                        (lbl._fragname || '') + (lbl._ext || '');
