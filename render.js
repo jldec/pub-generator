@@ -254,12 +254,22 @@ module.exports = function render(generator) {
 
     var a = (title && title.split(/\s+/)) || [];
     var b = [];
+    var classNames = [];
     var m;
     a.forEach(function(w) {
       if ((m = w.match(/^(\d+)x(\d+)$/))) return (out += ' width="' + m[1] + '" height="' + m[2] + '"');
-      if ((m = w.match(/^(\w+)=(\w+)$/))) return (out += ' ' + m[1] + '="' + m[2] + '"');
+      if ((m = w.match(/^(\w+)=([\w-]+)$/))) {
+        if (m[1] === 'class') return classNames.push(m[2]);
+        return (out += ' ' + m[1] + '="' + m[2] + '"');
+      }
+      if ((m = w.match(/^\.([\w-]+)$/))) return classNames.push(m[1]);
       if (w) return b.push(w);
     });
+
+    if (classNames.length) {
+      out += ' class="' + classNames.join(' ') + '"';
+    }
+
     title = b.join(' ');
 
     if (title) {
