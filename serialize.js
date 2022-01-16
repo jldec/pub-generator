@@ -3,7 +3,7 @@
  * reverse of parsefiles.js: serializes fragments back into file.text
  * TODO: streaming
  *
- * copyright 2015-2020, Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2022 Jürgen Leschner - github.com/jldec - MIT license
 **/
 
 var u = require('pub-util');

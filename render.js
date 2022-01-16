@@ -4,7 +4,7 @@
  * pub-generator mixin
  * provides functions for rendering HTML using handlebars templates and marked
  *
- * copyright 2015-2020, Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2022 Jürgen Leschner - github.com/jldec - MIT license
  *
 **/
 
@@ -42,7 +42,7 @@ module.exports = function render(generator) {
 
   function renderMarkdown(txt, options) {
     options = u.assign({}, defaultRenderOpts(), options);
-    return marked(txt, options);
+    return marked.marked(txt, options);
   }
 
   generator.renderOpts      = defaultRenderOpts;  // TODO: revisit (cannot renderDoc with staticRoot from editor)
@@ -345,7 +345,7 @@ module.exports = function render(generator) {
       links.push(href);
       return ''; // don't care about actual rendered result
     };
-    marked(item._txt, {renderer:renderer});
+    marked.marked(item._txt, {renderer:renderer});
     return links;
   }
 };
