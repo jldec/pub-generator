@@ -98,13 +98,19 @@ function parseFilesPUB(source, opts) {
         if (lbl._fragname) {
           if (!lbl._name && !lbl._path && prevLabel._name) { lbl._name = prevLabel._name; }
           lbl._path = lbl._path || prevLabel._path;
-          lbl._ext  = lbl._ext  || prevLabel._ext;
+          if (!lbl._ext) {
+            lbl._ext = prevLabel._ext;
+            lbl._extIsFromLabel = prevLabel._extIsFromLabel;
+          }
         }
       }
 
       // default page type is markdown with no extension
       if (/^\.(md|mdown|mdwn|mkd|mkdn|mkdown|markdown)$/i.test(lbl._ext) || !lbl._ext) {
-        delete lbl._ext;
+        // only delete the .md extension if it originated from the filename
+        if (!lbl._extIsFromLabel) {
+          delete lbl._ext;
+        }
       }
       // templates and other compiled fragments don't turn into pages
       else if (/^\.hbs$|^\.handlebars$/.test(lbl._ext) ||
@@ -123,8 +129,7 @@ function parseFilesPUB(source, opts) {
       }
 
       // record ._href
-      fragment._href = (lbl._path || '') + (lbl._name || '') +
-                       (lbl._fragname || '') + (lbl._ext || '');
+      fragment._href = (lbl._path || '') + (lbl._name || '') + (lbl._ext || '') + (lbl._fragname || '') ;
 
       // record name from label
       if (lbl.name && !fragment.name) { fragment.name = lbl.name; }

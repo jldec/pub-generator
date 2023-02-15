@@ -67,6 +67,7 @@ module.exports = function parseLabel(label, isFileName, slugifyOpts) {
   if ((ext = ppath.extname(rawname))) {
     lbl._ext = ext;
     rawname = rawname.slice(0, -ext.length);
+    lbl._extIsFromLabel = !isFileName && !!lbl._ext;
   }
 
   if (rawname) {
