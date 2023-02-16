@@ -7,6 +7,7 @@
 /* eslint indent: "off" */
 
 var test = require('tape');
+// var util = require('util');
 
 var u = require('pub-util');
 
@@ -244,7 +245,7 @@ tests.reverse().forEach(function run(tst) {
       generator.getPage(tst.page, function(err, page) {
         t.error(err);
 
-        // console.log(inspect(page, {depth:3}));
+        // console.log(util.inspect(page, {depth:3}));
 
         t.equal(typeof page, tst.pagetype || 'object');
         if (tst.pagetype !== 'undefined') {

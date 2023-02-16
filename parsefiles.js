@@ -74,8 +74,8 @@ function parseFilesPUB(source, opts) {
       if (idx === 0) {
         if (!lbl._name && !lbl._path) {
           if (fileLbl._name) { lbl._name = fileLbl._name; }
-          if (fileLbl.name && !lbl.name) { lbl.name = fileLbl.name; }
         }
+        lbl.name  = lbl.name  || fileLbl.name;
         lbl._path = lbl._path || fileLbl._path;
         lbl._ext  = lbl._ext  || fileLbl._ext;
       }
@@ -105,11 +105,15 @@ function parseFilesPUB(source, opts) {
         }
       }
 
-      // default page type is markdown with no extension
-      if (/^\.(md|mdown|mdwn|mkd|mkdn|mkdown|markdown)$/i.test(lbl._ext) || !lbl._ext) {
+      // default page type is a markdown file, with inherited md and or html extension
+      if (/^\.(md|mdown|mdwn|mkd|mkdn|mkdown|markdown)$/i.test(fileLbl._ext) &&
+         (/^\.(md|mdown|mdwn|mkd|mkdn|mkdown|markdown|htm|html)$/i.test(lbl._ext) || !lbl._ext)) {
         // only delete the .md extension if it originated from the filename
         if (!lbl._extIsFromLabel) {
           delete lbl._ext;
+          if (lbl._name && source.defaultExt) {
+            lbl._ext = source.defaultExt;
+          }
         }
       }
       // templates and other compiled fragments don't turn into pages
