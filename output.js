@@ -48,7 +48,7 @@ module.exports = function output(generator) {
       console.log('no templates specified');
       return cb();
     } else {
-      console.log('migrating', Object.keys(output.templates));
+      console.log('migrating pages with templates:', Object.keys(output.templates).join(', '));
     }
 
     var filterRe = new RegExp(
@@ -60,6 +60,7 @@ module.exports = function output(generator) {
     // pass1: collect files to generate (not /server or /admin or /pub)
     u.each(generator.pages, function (page) {
       if (filterRe.test(page._href)) return;
+      if (output.match && !output.match(page)) return;
 
       // skip pages with no template or template not in output.templates
       let tpl = output.templates[page.template];
@@ -67,7 +68,7 @@ module.exports = function output(generator) {
 
       if (page.nopublish) return;
 
-      files.push(mkfile(page._href, page._txt, page._hdr, tpl));
+      files.push(mkfile(page._href, page, tpl));
 
       if (tpl.filefragments) {
         let patterns = Object.keys(tpl.filefragments);
@@ -75,50 +76,62 @@ module.exports = function output(generator) {
           let pat = patterns.find((p) => fragment.fragment.startsWith(p));
           if (!pat) return;
           if (fragment.nopublish) return;
-          files.push(
-            mkfile(
-              fragment._href.replace(pat, '/'),
-              fragment._txt,
-              fragment._hdr,
-              tpl.filefragments[pat]
-            )
-          );
+          files.push(mkfile(fragment._href.replace(pat, '/'), fragment, tpl.filefragments[pat]));
         });
       }
     });
     files.forEach(writefile);
+    console.log('wrote', files.length, 'files to', output.path);
     cb();
 
-    function mkfile(path, text, _hdr, cfg) {
-      debug(path);
-      var file = { path, text };
-      file.frontmatter = u.omit(parseHeaders({ _hdr }), '_hdr', 'fragment', 'page', 'alias', 'template');
-      if (cfg.morph) {
-        Object.keys(cfg.morph).forEach((k) => {
-          if (file.frontmatter[k]) {
-            if (typeof cfg.morph[k] === 'function') {
-              let obj = cfg.morph[k](file.frontmatter[k]);
+    function mkfile(path, pg, cfg) {
+      debug(path, pg._sort ?? '_');
+      let file = { path, text: pg._txt };
+      let meta = file.frontmatter = parseHeaders({ _hdr: pg._hdr });
+      delete meta._hdr;
+      if (!meta.sort && pg._sort) {
+        meta.sort = pg._sort;
+      }
+      if (cfg.morph || output.morph) {
+        let morph = { ...output.morph, ...cfg.morph };
+        Object.keys(morph).forEach((k) => {
+          if (meta[k]) {
+            if (typeof morph[k] === 'function') {
+              let obj = morph[k](meta[k]);
               if (obj) {
                 debug('morph', k, '>fn', JSON.stringify(obj));
-                delete file.frontmatter[k];
-                file.frontmatter = { ...file.frontmatter, ...obj };
+                delete meta[k];
+                Object.assign(meta, obj);
               } else {
-                console.error('morph failed for', path, k + ':', cfg.morph[k], file.frontmatter[k]);
+                console.error('morph failed for', path, k + ':', morph[k], meta[k]);
               }
-            } else if (typeof cfg.morph[k] === 'string') {
+            } else if (
+              typeof morph[k] === 'string' &&
+              k in meta &&
+              !(morph[k] in meta)
+            ) {
               // simple rename
-              debug('morph', k, '>', cfg.morph[k]);
-              let val = file.frontmatter[k];
-              delete file.frontmatter[k];
-              file.frontmatter[cfg.morph[k]] = val;
+              debug('morph', k, '>', morph[k]);
+              let val = meta[k];
+              delete meta[k];
+              meta[morph[k]] = val;
             }
           }
         });
       }
-      if (cfg.add) {
-        Object.keys(cfg.add).forEach((k) => {
-          debug('add', k, '>', JSON.stringify(cfg.add[k]));
-          file.frontmatter[k] = cfg.add[k];
+      if (cfg.add || output.add) {
+        let add = { ...output.add, ...cfg.add };
+        Object.keys(add).forEach((k) => {
+          if (k in meta) return;
+          debug('add', k, ':', JSON.stringify(add[k]));
+          meta[k] = add[k];
+        });
+      }
+      if (cfg.del || output.del) {
+        let del = { ...output.del, ...cfg.del };
+        Object.keys(del).forEach((k) => {
+          debug('del', k);
+          delete meta[k];
         });
       }
       return file;
@@ -126,6 +139,9 @@ module.exports = function output(generator) {
 
     function writefile(file) {
       let path = ppath.join(output.path, file.path);
+      if (path.endsWith('/')) {
+        path += 'index.md';
+      }
       let dirname = ppath.dirname(path);
       if (!/\.[^/]*$/.test(path)) {
         path = path + '.md';
