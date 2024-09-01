@@ -44,12 +44,5 @@
     "url": "git://github.com/jldec/pub-generator.git"
   },
   "author": "Jürgen Leschner",
-  "license": "MIT",
-  "prettier": {
-    "printWidth": 100,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "tabWidth": 2
-  }
+  "license": "MIT"
 }
