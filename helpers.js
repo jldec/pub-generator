@@ -4,7 +4,7 @@
  * template rendering helpers
  * registers each helper with generator.handlebars
  *
- * Copyright (c) 2015-2022 Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2024 Jürgen Leschner - github.com/jldec - MIT license
  *
 **/
 /*eslint no-unused-vars: ["error", { "argsIgnorePattern": "frame" }]*/

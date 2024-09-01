@@ -21,7 +21,7 @@
  * left, right and end-of-header delimiters can be customized with opts
  * no extra fragment is generated for a header section at the very top
  *
- * Copyright (c) 2015-2022 Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2024 Jürgen Leschner - github.com/jldec - MIT license
  */
 
 var Fragment = require('./fragment');

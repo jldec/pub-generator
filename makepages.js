@@ -18,10 +18,11 @@
  *   _children:  array of references to pages below in page hierarchy if any
  *   _prev:      reference to previous sibling page if any
  *   _next:      reference to next sibling page if any
+ *   _sort:      derived sort string (only for -g migrate)
  *   _fragments: array of references to page fragments (for auto-rendering fragments in order)
  *   #*:         #name references to each page fragment (for rendering fragment by name)
  *
- * Copyright (c) 2015-2022 Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2024 Jürgen Leschner - github.com/jldec - MIT license
 **/
 
 var u = require('pub-util');
@@ -94,6 +95,7 @@ module.exports = function makepages(fragments, opts) {
       }
       if (!parent._children) { parent._children = []; }
       var cnt = parent._children.push(page);
+      if (opts.migrate) { page._sort = cnt * 10; }
       if (cnt > 1) {
         var prev =  parent._children[cnt-2];
         page._prev = prev;
