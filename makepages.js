@@ -22,7 +22,7 @@
  *   _fragments: array of references to page fragments (for auto-rendering fragments in order)
  *   #*:         #name references to each page fragment (for rendering fragment by name)
  *
- * Copyright (c) 2015-2022 Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2024 Jürgen Leschner - github.com/jldec - MIT license
 **/
 
 var u = require('pub-util');

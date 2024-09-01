@@ -4,7 +4,7 @@
  * pub-generator mixin
  * provides functions for rendering HTML using handlebars templates and marked
  *
- * Copyright (c) 2015-2022 Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2024 Jürgen Leschner - github.com/jldec - MIT license
  *
 **/
 
