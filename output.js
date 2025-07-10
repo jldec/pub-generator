@@ -44,12 +44,12 @@ module.exports = function output(generator) {
     }
     if (omit) console.log('omitting routes', omit);
 
-    if (!output.templates) {
-      console.log('no templates specified');
-      return cb();
-    } else {
-      console.log('migrating pages with templates:', Object.keys(output.templates).join(', '));
-    }
+    // if (!output.templates) {
+    //   console.log('no templates specified');
+    //   return cb();
+    // } else {
+    //   console.log('migrating pages with templates:', Object.keys(output.templates).join(', '));
+    // }
 
     var filterRe = new RegExp(
       '^(/admin/|/server/|/pub/|/pub-editor-help' +
@@ -63,8 +63,8 @@ module.exports = function output(generator) {
       if (output.match && !output.match(page)) return;
 
       // skip pages with no template or template not in output.templates
-      let tpl = output.templates[page.template];
-      if (!tpl) return;
+      let tpl = output.templates[page.template] || {};
+      // if (!tpl) return;
 
       if (page.nopublish) return;
 
@@ -85,7 +85,7 @@ module.exports = function output(generator) {
     cb();
 
     function mkfile(path, pg, cfg) {
-      debug(path, pg._sort ?? '_');
+      // debug(path, pg._sort ?? '_');
       let file = { path, text: pg._txt };
       let meta = file.frontmatter = parseHeaders({ _hdr: pg._hdr });
       delete meta._hdr;
@@ -97,13 +97,10 @@ module.exports = function output(generator) {
         Object.keys(morph).forEach((k) => {
           if (meta[k]) {
             if (typeof morph[k] === 'function') {
-              let obj = morph[k](meta[k]);
-              if (obj) {
-                debug('morph', k, '>fn', JSON.stringify(obj));
-                delete meta[k];
-                Object.assign(meta, obj);
-              } else {
-                console.error('morph failed for', path, k + ':', morph[k], meta[k]);
+              try {
+                meta[k] = morph[k](meta[k]);
+              } catch (err) {
+                console.warn(`morph errored for ${path} ${k}: ${morph[k]}, ${meta[k]}`);
               }
             } else if (
               typeof morph[k] === 'string' &&
@@ -111,7 +108,7 @@ module.exports = function output(generator) {
               !(morph[k] in meta)
             ) {
               // simple rename
-              debug('morph', k, '>', morph[k]);
+              // debug('morph rename', k, '>', morph[k]);
               let val = meta[k];
               delete meta[k];
               meta[morph[k]] = val;
@@ -123,14 +120,14 @@ module.exports = function output(generator) {
         let add = { ...output.add, ...cfg.add };
         Object.keys(add).forEach((k) => {
           if (k in meta) return;
-          debug('add', k, ':', JSON.stringify(add[k]));
+          // debug('add', k, ':', JSON.stringify(add[k]));
           meta[k] = add[k];
         });
       }
       if (cfg.del || output.del) {
         let del = { ...output.del, ...cfg.del };
         Object.keys(del).forEach((k) => {
-          debug('del', k);
+          // debug('del', k);
           delete meta[k];
         });
       }
@@ -149,6 +146,8 @@ module.exports = function output(generator) {
       if (!fs.existsSync(dirname)) {
         fs.mkdirSync(dirname, { recursive: true });
       }
+      console.log(file.path);
+      // debug(`${path} ${JSON.stringify(file.frontmatter, null, 2)}`);
       fs.writeFileSync(
         path,
         `---
@@ -157,7 +156,7 @@ ${yaml.dump(file.frontmatter, { lineWidth: -1 })}
 ${file.text}`
       );
 
-      debug(path.slice(output.path.length + 1));
+      // debug(path.slice(output.path.length + 1));
     }
   }
 
