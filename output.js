@@ -136,6 +136,10 @@ module.exports = function output(generator) {
 
     function writefile(file) {
       let path = ppath.join(output.path, file.path);
+      let extra = '';
+      if (file.path === '/') {
+        extra = fs.readFileSync('courses.yaml', 'utf8');
+      }
       if (path.endsWith('/')) {
         path += 'index.md';
       }
@@ -151,7 +155,7 @@ module.exports = function output(generator) {
       fs.writeFileSync(
         path,
         `---
-${yaml.dump(file.frontmatter, { lineWidth: -1 })}
+${yaml.dump(file.frontmatter, { lineWidth: -1 })}${extra}
 ---
 ${file.text}`
       );
